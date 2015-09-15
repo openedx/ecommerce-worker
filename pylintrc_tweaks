@@ -1,0 +1,3 @@
+# Local tweaks to pylintrc.
+[MASTER]
+ignore=configuration, celery_app.py

@@ -1,0 +1,4 @@
+# Packages required in a production environment
+-r base.txt
+
+PyYAML==3.11
