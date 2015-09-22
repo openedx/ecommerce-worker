@@ -1,0 +1,96 @@
+"""Tests of fulfillment tasks."""
+# pylint: disable=no-value-for-parameter
+from unittest import TestCase
+
+from celery.exceptions import Ignore
+import ddt
+from ecommerce_api_client import exceptions
+import httpretty
+import mock
+
+from ecommerce_worker.fulfillment.v1.tasks import fulfill_order
+from ecommerce_worker.utils import get_configuration
+
+
+@ddt.ddt
+class OrderFulfillmentTaskTests(TestCase):
+    """Tests of the order fulfillment task."""
+    ORDER_NUMBER = 'FAKE-123456'
+    API_URL = '{root}/orders/{number}/fulfill/'.format(
+        root=get_configuration('ECOMMERCE_API_ROOT').strip('/'),
+        number=ORDER_NUMBER
+    )
+
+    @ddt.data(
+        'ECOMMERCE_API_ROOT',
+        'WORKER_ACCESS_TOKEN',
+        'MAX_FULFILLMENT_RETRIES',
+    )
+    def test_requires_configuration(self, setting):
+        """Verify that the task refuses to run without the configuration it requires."""
+        with mock.patch('ecommerce_worker.configuration.test.' + setting, None):
+            with self.assertRaises(RuntimeError):
+                fulfill_order(self.ORDER_NUMBER)
+
+    @httpretty.activate
+    def test_fulfillment_success(self):
+        """Verify that the task exits without an error when fulfillment succeeds."""
+        httpretty.register_uri(httpretty.PUT, self.API_URL, status=200, body={})
+
+        result = fulfill_order.delay(self.ORDER_NUMBER).get()
+        self.assertIsNone(result)
+
+        # Validate the value of the HTTP Authorization header.
+        last_request = httpretty.last_request()
+        authorization = last_request.headers.get('authorization')
+        self.assertEqual(authorization, 'Bearer ' + get_configuration('WORKER_ACCESS_TOKEN'))
+
+    @httpretty.activate
+    def test_fulfillment_not_possible(self):
+        """Verify that the task exits without an error when fulfillment is not possible."""
+        httpretty.register_uri(httpretty.PUT, self.API_URL, status=406, body={})
+
+        with self.assertRaises(Ignore):
+            fulfill_order(self.ORDER_NUMBER)
+
+    @httpretty.activate
+    def test_fulfillment_unknown_client_error(self):
+        """
+        Verify that the task raises an exception when fulfillment fails because of an
+        unknown client error.
+        """
+        httpretty.register_uri(httpretty.PUT, self.API_URL, status=404, body={})
+
+        with self.assertRaises(exceptions.HttpClientError):
+            fulfill_order(self.ORDER_NUMBER)
+
+    @httpretty.activate
+    def test_fulfillment_failure(self):
+        """Verify that the task raises an exception when fulfillment fails."""
+        httpretty.register_uri(httpretty.PUT, self.API_URL, status=500, body={})
+
+        with self.assertRaises(exceptions.HttpServerError):
+            fulfill_order.delay(self.ORDER_NUMBER).get()
+
+    @httpretty.activate
+    def test_fulfillment_timeout(self):
+        """Verify that the task raises an exception when fulfillment times out."""
+        httpretty.register_uri(httpretty.PUT, self.API_URL, status=404, body=self._timeout_body)
+
+        with self.assertRaises(exceptions.Timeout):
+            fulfill_order.delay(self.ORDER_NUMBER).get()
+
+    @httpretty.activate
+    def test_fulfillment_retry_success(self):
+        """Verify that the task is capable of successfully retrying after fulfillment failure."""
+        httpretty.register_uri(httpretty.PUT, self.API_URL, responses=[
+            httpretty.Response(status=500, body={}),
+            httpretty.Response(status=200, body={}),
+        ])
+
+        result = fulfill_order.delay(self.ORDER_NUMBER).get()
+        self.assertIsNone(result)
+
+    def _timeout_body(self, request, uri, headers):  # pylint: disable=unused-argument
+        """Helper used to force httpretty to raise Timeout exceptions."""
+        raise exceptions.Timeout
