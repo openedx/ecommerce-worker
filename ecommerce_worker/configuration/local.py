@@ -16,16 +16,19 @@ BROKER_URL = 'amqp://'
 ECOMMERCE_API_ROOT = 'http://localhost:8002/api/v2/'
 # END ORDER FULFILLMENT
 
+# AUTHENTICATION
+JWT_SECRET_KEY = 'insecure-secret-key'
+JWT_ISSUER = 'ecommerce_worker'
+# END AUTHENTICATION
 
 # LOGGING
 logger_config = get_logger_config(debug=True, dev_env=True, local_loglevel='DEBUG')
 dictConfig(logger_config)
 # END LOGGING
 
-
 # Apply any developer-defined overrides.
 try:
-    from .private import *  # pylint: disable=import-error
+    from ecommerce_worker.configuration.private import *  # pylint: disable=import-error
 except ImportError:
     logger.warning('No developer-defined configuration overrides have been applied.')
     pass
