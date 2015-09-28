@@ -48,9 +48,9 @@ def fulfill_order(self, order_number):
         # the exception is re-raised.
         retries = self.request.retries
         if retries == max_fulfillment_retries:
-            logger.exception('Fulfillment of order [%s] failed.', order_number)
+            logger.exception('Fulfillment of order [%s] failed. Giving up.', order_number)
         else:
-            logger.exception('Fulfillment of order [%s] failed. Retrying.', order_number)
+            logger.warning('Fulfillment of order [%s] failed. Retrying.', order_number)
 
         countdown = 2 ** retries
         raise self.retry(exc=exc, countdown=countdown, max_retries=max_fulfillment_retries)
