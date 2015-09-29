@@ -6,6 +6,7 @@ from celery.exceptions import Ignore
 import ddt
 from ecommerce_api_client import exceptions
 import httpretty
+import jwt
 import mock
 
 from ecommerce_worker.fulfillment.v1.tasks import fulfill_order
@@ -23,8 +24,10 @@ class OrderFulfillmentTaskTests(TestCase):
 
     @ddt.data(
         'ECOMMERCE_API_ROOT',
-        'WORKER_ACCESS_TOKEN',
         'MAX_FULFILLMENT_RETRIES',
+        'JWT_SECRET_KEY',
+        'JWT_ISSUER',
+        'ECOMMERCE_SERVICE_USERNAME'
     )
     def test_requires_configuration(self, setting):
         """Verify that the task refuses to run without the configuration it requires."""
@@ -42,8 +45,9 @@ class OrderFulfillmentTaskTests(TestCase):
 
         # Validate the value of the HTTP Authorization header.
         last_request = httpretty.last_request()
-        authorization = last_request.headers.get('authorization')
-        self.assertEqual(authorization, 'Bearer ' + get_configuration('WORKER_ACCESS_TOKEN'))
+        token = last_request.headers.get('authorization').split()[1]
+        payload = jwt.decode(token, get_configuration('JWT_SECRET_KEY'))
+        self.assertEqual(payload['username'], get_configuration('ECOMMERCE_SERVICE_USERNAME'))
 
     @httpretty.activate
     def test_fulfillment_not_possible(self):

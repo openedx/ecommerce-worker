@@ -19,3 +19,10 @@ WORKER_ACCESS_TOKEN = 'fake-access-token'
 logger_config = get_logger_config(debug=True, dev_env=True, local_loglevel='DEBUG')
 dictConfig(logger_config)
 # END LOGGING
+
+# AUTHENTICATION
+JWT_SECRET_KEY = 'test-key'
+JWT_ISSUER = 'ecommerce_worker'
+
+ECOMMERCE_SERVICE_USERNAME = 'service'
+# END AUTHENTICATION

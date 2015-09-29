@@ -22,12 +22,16 @@ CELERYD_HIJACK_ROOT_LOGGER = False
 # Absolute URL used to construct API calls against the ecommerce service.
 ECOMMERCE_API_ROOT = None
 
-# Long-lived access token used by Celery workers to authenticate against the ecommerce service.
-WORKER_ACCESS_TOKEN = None
-
 # Maximum number of retries before giving up on the fulfillment of an order.
 # For reference, 11 retries with exponential backoff yields a maximum waiting
 # time of 2047 seconds (about 30 minutes). Defaulting this to None could yield
 # unwanted behavior: infinite retries.
 MAX_FULFILLMENT_RETRIES = 11
 # END ORDER FULFILLMENT
+
+# AUTHENTICATION
+JWT_SECRET_KEY = None
+JWT_ISSUER = None
+
+ECOMMERCE_SERVICE_USERNAME = 'ecommerce_worker'
+# END AUTHENTICATION

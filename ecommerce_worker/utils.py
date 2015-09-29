@@ -25,4 +25,7 @@ def get_configuration(variable):
     __import__(name)
     module = sys.modules[name]
 
-    return getattr(module, variable, None)
+    value = getattr(module, variable, None)
+    if value is None:
+        raise RuntimeError('Worker is improperly configured: {} is unset in {}.'.format(variable, module))
+    return value

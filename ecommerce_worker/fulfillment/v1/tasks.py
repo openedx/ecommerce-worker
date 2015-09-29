@@ -21,14 +21,12 @@ def fulfill_order(self, order_number):
         None
     """
     ecommerce_api_root = get_configuration('ECOMMERCE_API_ROOT')
-    worker_access_token = get_configuration('WORKER_ACCESS_TOKEN')
     max_fulfillment_retries = get_configuration('MAX_FULFILLMENT_RETRIES')
+    signing_key = get_configuration('JWT_SECRET_KEY')
+    issuer = get_configuration('JWT_ISSUER')
+    service_username = get_configuration('ECOMMERCE_SERVICE_USERNAME')
 
-    if not (ecommerce_api_root and worker_access_token and max_fulfillment_retries):
-        raise RuntimeError('Worker is improperly configured for order fulfillment.')
-
-    api = EcommerceApiClient(ecommerce_api_root, oauth_access_token=worker_access_token)
-
+    api = EcommerceApiClient(ecommerce_api_root, signing_key=signing_key, issuer=issuer, username=service_username)
     try:
         logger.info('Requesting fulfillment of order [%s].', order_number)
         api.orders(order_number).fulfill.put()
