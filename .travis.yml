@@ -1,6 +1,6 @@
 language: python
 python:
-    - "2.7"
+    - '2.7'
 sudo: false
 
 # Cache the pip directory. "cache: pip" doesn't work due to install override.
@@ -14,8 +14,13 @@ install:
     - pip install coveralls
 script:
     - make validate
-branches:
-    only:
-        - master
-after_success:
-    coveralls
+after_success: coveralls
+
+deploy:
+  provider: pypi
+  user: edx
+  distributions: sdist bdist_wheel
+  on:
+    tags: true
+  password:
+    secure: FV3lBLlyJo6wVdECiz3aVkOyo8CIFueX2W6fR9pEN04rvuhx/hcEF/naaPK/x2zTmo5Cn1fEf01wmHimvKtoLGsOgtGCT32Qe4gAPpsep5KUF/rv5RXNoUsLi1+furdz7kFdZWu5TlAv8gwIvwV3bsQABXj7hVgU8LcmUwZGyKTw0uchgS3PbwOMyvGFEsQc8+2wQNPJNcbbTBvZuqkj64MdynlxPmtFjG26mTrdnkOgYUjTk4sOQ9qmv/M9GrH1Lj2IBFjPdYmNjfjK73vtYWuOC7TA2NosdoCDhM5o3vQuLXfbjnxpobd3X09THlwS4wcvFJmT7fluVvp7idFZsxLly3Z6sPCZJu5NhHHc9r/jNubgz67ELKulzwNPMo9YneVQT30nKXJGtQ53035z6nfuPUHqh1IyYIDxN3/W9KDvVT2aLf+FlFzL6tTWM1T9zmEE3qpDCOpe3aQPFDIxcwMmwYW4nGeHETQqZz9+9Av6IVCD6GD884pA6jE+vmmXynjqprkAKONJQOVAwNsie1kwMjITRxyl/RjoCNvpjBU2V1MXuGi+4sxHhkwU6tDGZWjVKTSwhjy0iHwZpJ3AYrbW2fC/oLzIFR1IfjsX5W+UvSb4N8ilKZsnjUwMKHfIXUrXJ20P4YC4mLV8TorpCCvIatVGaUQqhle912X3jT0=
