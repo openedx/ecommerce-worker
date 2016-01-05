@@ -2,7 +2,7 @@
 import os
 import sys
 
-from ecommerce_worker.celery_app import CONFIGURATION
+from ecommerce_worker.configuration import CONFIGURATION_MODULE
 
 
 def get_configuration(variable):
@@ -17,7 +17,7 @@ def get_configuration(variable):
     Returns:
         The value corresponding to the variable, or None if the variable is not found.
     """
-    name = os.environ.get(CONFIGURATION)
+    name = os.environ.get(CONFIGURATION_MODULE)
 
     # __import__ performs a full import, but only returns the top-level
     # package, not the targeted module. sys.modules is a dictionary

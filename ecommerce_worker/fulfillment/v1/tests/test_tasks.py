@@ -9,6 +9,8 @@ import httpretty
 import jwt
 import mock
 
+# Ensures that a Celery app is initialized when tests are run.
+from ecommerce_worker import celery_app  # pylint: disable=unused-import
 from ecommerce_worker.fulfillment.v1.tasks import fulfill_order
 from ecommerce_worker.utils import get_configuration
 

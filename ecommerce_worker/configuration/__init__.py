@@ -1,5 +1,11 @@
 import os
 
+
+# Environment variable indicating which configuration module to use
+# when running the worker.
+CONFIGURATION_MODULE = 'WORKER_CONFIGURATION_MODULE'
+
+
 def get_overrides_filename(variable):
     """
     Get the name of the file containing configuration overrides
