@@ -1,10 +1,10 @@
-edX Ecommerce Worker  |Travis|_ |Coveralls|_
-============================================
+edX Ecommerce Worker  |Travis|_ |Codecov|_
+==========================================
 .. |Travis| image:: https://travis-ci.org/edx/ecommerce-worker.svg?branch=master
 .. _Travis: https://travis-ci.org/edx/ecommerce-worker
 
-.. |Coveralls| image:: https://coveralls.io/repos/edx/ecommerce-worker/badge.svg?branch=master
-.. _Coveralls: https://coveralls.io/r/edx/ecommerce-worker?branch=master
+.. |Codecov| image:: http://codecov.io/github/edx/ecommerce-worker/coverage.svg?branch=master
+.. _Codecov: http://codecov.io/github/edx/ecommerce-worker?branch=master
 
 The Celery tasks contained herein are used to implement asynchronous order fulfillment and other features requiring the asynchronous execution of many small, common operations.
 
