@@ -31,7 +31,7 @@ def fulfill_order(self, order_number):
         logger.info('Requesting fulfillment of order [%s].', order_number)
         api.orders(order_number).fulfill.put()
     except exceptions.HttpClientError as exc:
-        status_code = exc.response.status_code
+        status_code = exc.response.status_code  # pylint: disable=no-member
         if status_code == 406:
             # The order is not fulfillable. Therefore, it must be complete.
             logger.info('Order [%s] has already been fulfilled. Ignoring.', order_number)
