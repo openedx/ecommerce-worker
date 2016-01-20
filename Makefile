@@ -19,7 +19,7 @@ requirements:
 	pip install -qr requirements/local.txt --exists-action w
 
 worker:
-	celery -A ecommerce_worker worker --app=$(PACKAGE).celery_app:app --loglevel=info
+	celery -A ecommerce_worker worker --app=$(PACKAGE).celery_app:app --loglevel=info --queue=fulfillment
 
 test:
 	WORKER_CONFIGURATION_MODULE=ecommerce_worker.configuration.test nosetests \
