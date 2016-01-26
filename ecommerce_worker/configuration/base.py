@@ -2,6 +2,18 @@
 # Default broker URL. See http://celery.readthedocs.org/en/latest/configuration.html#broker-url.
 BROKER_URL = None
 
+# Disable connection pooling. Connections may be severed by load balancers.
+# This forces the application to connect explicitly to the broker each time
+# rather than assume a long-lived connection.
+BROKER_POOL_LIMIT = 0
+BROKER_CONNECTION_TIMEOUT = 1
+
+# Use heartbeats to prevent broker connection loss. When the broker
+# is behind a load balancer, the load balancer may timeout Celery's
+# connection to the broker, causing messages to be lost.
+BROKER_HEARTBEAT = 10.0
+BROKER_HEARTBEAT_CHECKRATE = 2
+
 # Backend used to store task results.
 # See http://celery.readthedocs.org/en/latest/configuration.html#celery-result-backend.
 CELERY_RESULT_BACKEND = None
