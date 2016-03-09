@@ -6,7 +6,7 @@ with open('README.rst') as readme:
 
 setup(
     name='edx-ecommerce-worker',
-    version='0.3.1',
+    version='0.3.2',
     description='Celery tasks supporting the operations of edX\'s ecommerce service',
     long_description=long_description,
     classifiers=[
@@ -24,5 +24,8 @@ setup(
     author_email='oscm@edx.org',
     license='AGPL',
     packages=find_packages(exclude=['*.tests']),
-    install_requires=['celery', 'edx-ecommerce-api-client'],
+    install_requires=[
+        'celery>=3.1.18,<4.0.0',
+        'edx-rest-api-client>=1.5.0,<2.0.0'
+    ],
 )
