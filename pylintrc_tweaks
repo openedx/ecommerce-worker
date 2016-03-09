@@ -1,3 +1,4 @@
 # Local tweaks to pylintrc.
 [MASTER]
 ignore=configuration, celery_app.py
+load-plugins = edx_lint.pylint
