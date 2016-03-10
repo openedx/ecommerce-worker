@@ -6,7 +6,7 @@ with open('README.rst') as readme:
 
 setup(
     name='edx-ecommerce-worker',
-    version='0.3.2',
+    version='0.3.3',
     description='Celery tasks supporting the operations of edX\'s ecommerce service',
     long_description=long_description,
     classifiers=[
