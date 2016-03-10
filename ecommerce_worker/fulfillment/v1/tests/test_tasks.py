@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from celery.exceptions import Ignore
 import ddt
-from ecommerce_api_client import exceptions
+from edx_rest_api_client import exceptions
 import httpretty
 import jwt
 import mock

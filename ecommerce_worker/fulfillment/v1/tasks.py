@@ -2,8 +2,8 @@
 from celery import shared_task
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
-from ecommerce_api_client import exceptions
-from ecommerce_api_client.client import EcommerceApiClient
+from edx_rest_api_client import exceptions
+from edx_rest_api_client.client import EdxRestApiClient
 
 from ecommerce_worker.utils import get_configuration
 
@@ -26,7 +26,7 @@ def fulfill_order(self, order_number):
     issuer = get_configuration('JWT_ISSUER')
     service_username = get_configuration('ECOMMERCE_SERVICE_USERNAME')
 
-    api = EcommerceApiClient(ecommerce_api_root, signing_key=signing_key, issuer=issuer, username=service_username)
+    api = EdxRestApiClient(ecommerce_api_root, signing_key=signing_key, issuer=issuer, username=service_username)
     try:
         logger.info('Requesting fulfillment of order [%s].', order_number)
         api.orders(order_number).fulfill.put()
