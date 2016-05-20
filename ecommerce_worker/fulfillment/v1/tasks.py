@@ -11,7 +11,7 @@ logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 
 
 @shared_task(bind=True, ignore_result=True)
-def fulfill_order(self, order_number):
+def fulfill_order(self, order_number, site_code=None):
     """Fulfills an order.
 
     Arguments:
@@ -20,11 +20,11 @@ def fulfill_order(self, order_number):
     Returns:
         None
     """
-    ecommerce_api_root = get_configuration('ECOMMERCE_API_ROOT')
-    max_fulfillment_retries = get_configuration('MAX_FULFILLMENT_RETRIES')
-    signing_key = get_configuration('JWT_SECRET_KEY')
-    issuer = get_configuration('JWT_ISSUER')
-    service_username = get_configuration('ECOMMERCE_SERVICE_USERNAME')
+    ecommerce_api_root = get_configuration('ECOMMERCE_API_ROOT', site_code=site_code)
+    max_fulfillment_retries = get_configuration('MAX_FULFILLMENT_RETRIES', site_code=site_code)
+    signing_key = get_configuration('JWT_SECRET_KEY', site_code=site_code)
+    issuer = get_configuration('JWT_ISSUER', site_code=site_code)
+    service_username = get_configuration('ECOMMERCE_SERVICE_USERNAME', site_code=site_code)
 
     api = EdxRestApiClient(ecommerce_api_root, signing_key=signing_key, issuer=issuer, username=service_username)
     try:
