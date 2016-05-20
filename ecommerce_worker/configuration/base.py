@@ -47,3 +47,7 @@ JWT_ISSUER = None
 
 ECOMMERCE_SERVICE_USERNAME = 'ecommerce_worker'
 # END AUTHENTICATION
+
+# Site Overrides provide support for site/partner-specific configuration settings where applicable
+# For example, the ECOMMERCE_API_ROOT value is different from one ecommerce site to the next
+SITE_OVERRIDES = None
