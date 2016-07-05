@@ -22,6 +22,7 @@ CELERY_RESULT_BACKEND = None
 # See http://celery.readthedocs.org/en/latest/configuration.html#celery-imports.
 CELERY_IMPORTS = (
     'ecommerce_worker.fulfillment.v1.tasks',
+    'ecommerce_worker.sailthru.v1.tasks',
 )
 
 # Prevent Celery from removing handlers on the root logger. Allows setting custom logging handlers.
@@ -51,3 +52,40 @@ ECOMMERCE_SERVICE_USERNAME = 'ecommerce_worker'
 # Site Overrides provide support for site/partner-specific configuration settings where applicable
 # For example, the ECOMMERCE_API_ROOT value is different from one ecommerce site to the next
 SITE_OVERRIDES = None
+
+# Settings for Sailthru email marketing integration
+SAILTHRU = {
+    # Set to false to ignore Sailthru events
+    'SAILTHRU_ENABLE': True,
+
+    # Template used when user upgrades to verified
+    'SAILTHRU_UPGRADE_TEMPLATE': None,
+
+    # Template used with user purchases a course
+    'SAILTHRU_PURCHASE_TEMPLATE': None,
+
+    # Template used with user enrolls in a free course
+    'SAILTHRU_ENROLL_TEMPLATE': None,
+
+    # Abandoned cart template
+    'SAILTHRU_ABANDONED_CART_TEMPLATE': None,
+
+    # minutes to delay before abandoned cart message
+    'SAILTHRU_ABANDONED_CART_DELAY': 60,
+
+    # Sailthru key and secret required for integration
+    'SAILTHRU_KEY': None,
+    'SAILTHRU_SECRET': None,
+
+    # Retry settings for Sailthru celery tasks
+    'SAILTHRU_RETRY_SECONDS': 3600,
+    'SAILTHRU_RETRY_ATTEMPTS': 24,
+
+    # ttl for cached course content from Sailthru (in seconds)
+    'SAILTHRU_CACHE_TTL_SECONDS': 3600,
+
+    # dummy price for audit/honor (i.e., if cost = 0)
+    #  Note: setting this value to 0 skips Sailthru calls for free transactions
+    'SAILTHRU_MINIMUM_COST': 100,
+}
+
