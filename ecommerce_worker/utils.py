@@ -32,7 +32,7 @@ def get_configuration(variable, site_code=None):
     # Locate the setting in the specified module, then attempt to apply a site-specific override
     setting_value = getattr(module, variable, None)
     site_overrides = getattr(module, 'SITE_OVERRIDES', None)
-    if site_overrides:
+    if site_overrides and site_code is not None:
         site_specific_overrides = site_overrides.get(site_code)
         if site_specific_overrides:
             override_value = site_specific_overrides.get(variable)
