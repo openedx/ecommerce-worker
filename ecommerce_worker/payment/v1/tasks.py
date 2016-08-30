@@ -1,4 +1,4 @@
-"""Order fulfillment tasks."""
+"""Payment tasks."""
 from celery import shared_task
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
@@ -29,18 +29,9 @@ def process_notification(self, processor_name, notification_data, site_code=None
         notification_data['payment_processor'] = processor_name
         api.payment.processors.notification.process.put(notification_data)
     except exceptions.HttpClientError as exc:
-        status_code = exc.response.status_code  # pylint: disable=no-member
-        if status_code == 406:
-            # The notification has already been processed.
-            logger.info(
-                'Notification from payment processor [%s] has already been processed. Ignoring.',
-                processor_name
-            )
-            raise Ignore()
-        else:
-            # Unknown client error. Re-raise the exception.
-            logger.exception('Processing of notification from payment processor [%s] failed.', processor_name)
-            raise exc
+        # Unknown client error. Re-raise the exception.
+        logger.exception('Processing of notification from payment processor [%s] failed.', processor_name)
+        raise exc
     except (exceptions.HttpServerError, exceptions.Timeout) as exc:
         # Notification processing failed. Retry with exponential backoff until processing
         # succeeds or the retry limit is reached. If the retry limit is exceeded,
