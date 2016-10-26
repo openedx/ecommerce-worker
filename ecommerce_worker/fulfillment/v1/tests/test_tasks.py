@@ -71,6 +71,17 @@ class OrderFulfillmentTaskTests(TestCase):
             fulfill_order(self.ORDER_NUMBER)
 
     @httpretty.activate
+    def test_fulfillment_unknown_client_error_retry_success(self):
+        """Verify that the task is capable of successfully retrying after client error."""
+        httpretty.register_uri(httpretty.PUT, self.API_URL, responses=[
+            httpretty.Response(status=404, body={}),
+            httpretty.Response(status=200, body={}),
+        ])
+
+        result = fulfill_order.delay(self.ORDER_NUMBER).get()
+        self.assertIsNone(result)
+
+    @httpretty.activate
     def test_fulfillment_failure(self):
         """Verify that the task raises an exception when fulfillment fails."""
         httpretty.register_uri(httpretty.PUT, self.API_URL, status=500, body={})
