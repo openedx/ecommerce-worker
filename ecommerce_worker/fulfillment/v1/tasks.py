@@ -10,6 +10,22 @@ from ecommerce_worker.utils import get_configuration
 logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 
 
+def _retry_order(self, exception, max_fulfillment_retries, order_number):
+    """
+    Retry with exponential backoff until fulfillment
+    succeeds or the retry limit is reached. If the retry limit is exceeded,
+    the exception is re-raised.
+    """
+    retries = self.request.retries
+    if retries == max_fulfillment_retries:
+        logger.exception('Fulfillment of order [%s] failed. Giving up.', order_number)
+    else:
+        logger.warning('Fulfillment of order [%s] failed. Retrying.', order_number)
+
+    countdown = 2 ** retries
+    raise self.retry(exc=exception, countdown=countdown, max_retries=max_fulfillment_retries)
+
+
 @shared_task(bind=True, ignore_result=True)
 def fulfill_order(self, order_number, site_code=None):
     """Fulfills an order.
@@ -37,18 +53,14 @@ def fulfill_order(self, order_number, site_code=None):
             logger.info('Order [%s] has already been fulfilled. Ignoring.', order_number)
             raise Ignore()
         else:
-            # Unknown client error. Re-raise the exception.
-            logger.exception('Fulfillment of order [%s] failed.', order_number)
-            raise exc
-    except (exceptions.HttpServerError, exceptions.Timeout) as exc:
-        # Fulfillment failed. Retry with exponential backoff until fulfillment
-        # succeeds or the retry limit is reached. If the retry limit is exceeded,
-        # the exception is re-raised.
-        retries = self.request.retries
-        if retries == max_fulfillment_retries:
-            logger.exception('Fulfillment of order [%s] failed. Giving up.', order_number)
-        else:
-            logger.warning('Fulfillment of order [%s] failed. Retrying.', order_number)
+            # Unknown client error. Let's retry to resolve it.
+            logger.warning(
+                'Fulfillment of order [%s] failed because of HttpClientError. Retrying',
+                order_number,
+                exc_info=True
+            )
+            _retry_order(self, exc, max_fulfillment_retries, order_number)
 
-        countdown = 2 ** retries
-        raise self.retry(exc=exc, countdown=countdown, max_retries=max_fulfillment_retries)
+    except (exceptions.HttpServerError, exceptions.Timeout) as exc:
+        # Fulfillment failed, retry
+        _retry_order(self, exc, max_fulfillment_retries, order_number)
