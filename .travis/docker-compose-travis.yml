@@ -1,0 +1,10 @@
+version: "2"
+
+services:
+  ecomworker:
+    image: edxops/ecomworker:latest
+
+    container_name: ecomworker
+    volumes:
+      - ..:/edx/app/ecomworker/ecomworker
+    command: tail -f /dev/null
