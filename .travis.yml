@@ -1,20 +1,20 @@
 language: python
 python:
     - '2.7'
-sudo: false
+sudo: required
 
-# Cache the pip directory. "cache: pip" doesn't work due to install override.
-# See https://github.com/travis-ci/travis-ci/issues/3239.
-cache:
-    - directories:
-        - $HOME/.cache/pip
-install:
-    - pip install -U pip wheel
-    - pip install -U codecov
-    - make requirements
+services:
+    - docker
+
+before_install:
+    - docker-compose -f .travis/docker-compose-travis.yml up -d
+
 script:
-    - make validate
+    - docker exec ecomworker /edx/app/ecomworker/ecomworker/.travis/run_tests.sh
+
 after_success:
+    - pip install -U codecov
+    - docker exec ecomworker /edx/app/ecomworker/ecomworker/.travis/run_coverage.sh
     - codecov
 
 deploy:
