@@ -2,6 +2,8 @@
 import os
 import sys
 
+from edx_rest_api_client.client import EdxRestApiClient
+
 from ecommerce_worker.configuration import CONFIGURATION_MODULE
 
 
@@ -42,3 +44,17 @@ def get_configuration(variable, site_code=None):
     if setting_value is None:
         raise RuntimeError('Worker is improperly configured: {} is unset in {}.'.format(variable, module))
     return setting_value
+
+
+def get_ecommerce_client(site_code=None):
+    """
+    Get client for fetching data from ecommerce API
+
+    Returns:
+        EdxRestApiClient object
+    """
+    ecommerce_api_root = get_configuration('ECOMMERCE_API_ROOT', site_code=site_code)
+    signing_key = get_configuration('JWT_SECRET_KEY', site_code=site_code)
+    issuer = get_configuration('JWT_ISSUER', site_code=site_code)
+    service_username = get_configuration('ECOMMERCE_SERVICE_USERNAME', site_code=site_code)
+    return EdxRestApiClient(ecommerce_api_root, signing_key=signing_key, issuer=issuer, username=service_username)
