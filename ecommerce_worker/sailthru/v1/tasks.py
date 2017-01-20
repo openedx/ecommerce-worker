@@ -8,7 +8,7 @@ from sailthru.sailthru_client import SailthruClient
 from sailthru.sailthru_error import SailthruClientError
 
 from ecommerce_worker.cache import Cache
-from ecommerce_worker.utils import get_configuration
+from ecommerce_worker.utils import get_configuration, get_ecommerce_client
 
 logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 cache = Cache()  # pylint: disable=invalid-name
@@ -83,7 +83,7 @@ def update_course_enrollment(self, email, course_url, purchase_incomplete, mode,
             _schedule_retry(self, config)
 
     # Get course data from Sailthru content library or cache
-    course_data = _get_course_content(course_url, sailthru_client, site_code, config)
+    course_data = _get_course_content(course_id, course_url, sailthru_client, site_code, config)
 
     # build item description
     item = _build_purchase_item(course_id, course_url, cost_in_cents, mode, course_data)
@@ -167,12 +167,13 @@ def _record_purchase(sailthru_client, email, item, purchase_incomplete, message_
     return True
 
 
-def _get_course_content(course_url, sailthru_client, site_code, config):
+def _get_course_content(course_id, course_url, sailthru_client, site_code, config):
     """Get course information using the Sailthru content api or from cache.
 
     If there is an error, just return with an empty response.
 
     Arguments:
+        course_id (str): course key of the course
         course_url (str): LMS url for course info page.
         sailthru_client (object): SailthruClient
         site_code (str): site code
@@ -188,15 +189,51 @@ def _get_course_content(course_url, sailthru_client, site_code, config):
         try:
             sailthru_response = sailthru_client.api_get("content", {"id": course_url})
             if not sailthru_response.is_ok():
-                return {}
-
-            response = sailthru_response.json
-            cache.set(cache_key, response, config.get('SAILTHRU_CACHE_TTL_SECONDS'))
+                response = {}
+            else:
+                response = sailthru_response.json
+                cache.set(cache_key, response, config.get('SAILTHRU_CACHE_TTL_SECONDS'))
 
         except SailthruClientError:
             response = {}
 
+        if not response:
+            logger.error('Could not get course data from Sailthru on enroll/purchase event. '
+                         'Calling Ecommerce Course API to get course info for enrollment confirmation email')
+            response = _get_course_content_from_ecommerce(course_id, site_code=site_code)
+            if response:
+                cache.set(cache_key, response, config.get('SAILTHRU_CACHE_TTL_SECONDS'))
+
     return response
+
+
+def _get_course_content_from_ecommerce(course_id, site_code=None):
+    """
+    Get course information using the Ecommerce course api.
+
+    In case of error returns empty response.
+    Arguments:
+        course_id (str): course key of the course
+        site_code (str): site code
+
+    Returns:
+        course information from Ecommerce
+    """
+    api = get_ecommerce_client(site_code=site_code)
+    try:
+        api_response = api.courses(course_id).get()
+    except Exception:  # pylint: disable=broad-except
+        logger.exception(
+            'An error occurred while retrieving data for course run [%s] from the Catalog API.',
+            course_id,
+            exc_info=True
+        )
+        return {}
+
+    return {
+        'title': api_response.get('name'),
+        'verification_deadline': api_response.get('verification_deadline')
+    }
 
 
 def _update_unenrolled_list(sailthru_client, email, course_url, unenroll):

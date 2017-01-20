@@ -1,12 +1,16 @@
 """Tests of sailthru worker code."""
+import json
 import logging
 from decimal import Decimal
 from unittest import TestCase
 
+import httpretty
 from mock import patch
 from sailthru.sailthru_error import SailthruClientError
 
-from ecommerce_worker.sailthru.v1.tasks import update_course_enrollment, _update_unenrolled_list, _get_course_content
+from ecommerce_worker.sailthru.v1.tasks import (
+    update_course_enrollment, _update_unenrolled_list, _get_course_content, _get_course_content_from_ecommerce
+)
 from ecommerce_worker.utils import get_configuration
 
 log = logging.getLogger(__name__)
@@ -25,6 +29,29 @@ class SailthruTests(TestCase):
         self.course_url = 'http://lms.testserver.fake/courses/edX/toy/2012_Fall/info'
         self.course_id2 = 'edX/toy/2016_Fall'
         self.course_url2 = 'http://lms.testserver.fake/courses/edX/toy/2016_Fall/info'
+
+    def mock_ecommerce_api(self, body, course_id, status=200):
+        """ Mock GET requests to the ecommerce course API endpoint. """
+        httpretty.reset()
+        httpretty.register_uri(
+            httpretty.GET, '{}/courses/{}/'.format(
+                get_configuration('ECOMMERCE_API_ROOT').strip('/'), unicode(course_id)
+            ),
+            status=status,
+            body=json.dumps(body), content_type='application/json',
+        )
+
+    def ecom_course_data(self, course_id):
+        """ Returns dummy course data. """
+        return {
+            "id": course_id,
+            "url": "https://test-ecommerce.edx.org/api/v2/courses/{}/".format(course_id),
+            "name": "test course",
+            "verification_deadline": "2016-12-01T23:59:00Z",
+            "type": "verified",
+            "products_url": "https://test-ecommerce.edx.org/api/v2/courses/{}/products/".format(course_id),
+            "last_edited": "2016-12-28T15:20:58Z"
+        }
 
     @patch('ecommerce_worker.sailthru.v1.tasks.get_configuration')
     @patch('ecommerce_worker.sailthru.v1.tasks.logger.error')
@@ -318,6 +345,7 @@ class SailthruTests(TestCase):
                                        unit_cost=Decimal(99))
         self.assertTrue(mock_log_error.called)
 
+    @httpretty.activate
     @patch('ecommerce_worker.sailthru.v1.tasks.SailthruClient')
     def test_get_course_content(self, mock_sailthru_client):
         """
@@ -325,23 +353,66 @@ class SailthruTests(TestCase):
         """
         config = {'SAILTHRU_CACHE_TTL_SECONDS': 100}
         mock_sailthru_client.api_get.return_value = MockSailthruResponse({"title": "The title"})
-        response_json = _get_course_content('course:123', mock_sailthru_client, None, config)
+        response_json = _get_course_content(self.course_id, 'course:123', mock_sailthru_client, None, config)
         self.assertEquals(response_json, {"title": "The title"})
         mock_sailthru_client.api_get.assert_called_with('content', {'id': 'course:123'})
 
         # test second call uses cache
         mock_sailthru_client.reset_mock()
-        response_json = _get_course_content('course:123', mock_sailthru_client, None, config)
+        response_json = _get_course_content(self.course_id, 'course:123', mock_sailthru_client, None, config)
         self.assertEquals(response_json, {"title": "The title"})
         mock_sailthru_client.api_get.assert_not_called()
 
         # test error from Sailthru
         mock_sailthru_client.api_get.return_value = MockSailthruResponse({}, error='Got an error')
-        self.assertEquals(_get_course_content('course:124', mock_sailthru_client, None, config), {})
+        data = self.ecom_course_data(self.course_id)
+        expected_response = {
+            'title': 'test course',
+            'verification_deadline': '2016-12-01T23:59:00Z'
+        }
+        self.mock_ecommerce_api(data, self.course_id)
+        self.assertEquals(
+            _get_course_content(self.course_id, 'course:124', mock_sailthru_client, None, config), expected_response
+        )
 
-        # test exception
+        # test Sailthru exception
+        data = self.ecom_course_data(self.course_id)
+        expected_response = {
+            'title': 'test course',
+            'verification_deadline': '2016-12-01T23:59:00Z'
+        }
         mock_sailthru_client.api_get.side_effect = SailthruClientError
-        self.assertEquals(_get_course_content('course:125', mock_sailthru_client, None, config), {})
+        self.mock_ecommerce_api(data, self.course_id)
+        self.assertEquals(
+            _get_course_content(self.course_id, 'course:125', mock_sailthru_client, None, config), expected_response
+        )
+
+        # test Sailthru and Ecommerce exception
+        mock_sailthru_client.api_get.side_effect = SailthruClientError
+        self.mock_ecommerce_api({}, self.course_id2, status=500)
+        self.assertEquals(
+            _get_course_content(self.course_id2, 'course:126', mock_sailthru_client, None, config), {}
+        )
+
+    @httpretty.activate
+    def test_get_course_content_from_ecommerce(self):
+        """
+        Test routine that fetches data from ecommerce.
+        """
+        data = self.ecom_course_data(self.course_id)
+        expected_response = {
+            'title': 'test course',
+            'verification_deadline': '2016-12-01T23:59:00Z'
+        }
+        self.mock_ecommerce_api(data, self.course_id)
+
+        response_json = _get_course_content_from_ecommerce(self.course_id, None)
+        self.assertEquals(response_json, expected_response)
+
+        # test error getting data
+        self.mock_ecommerce_api({}, self.course_id2, status=500)
+        response_json = _get_course_content_from_ecommerce(self.course_id2, None)
+        self.assertEquals(response_json, {})
 
     @patch('ecommerce_worker.sailthru.v1.tasks.SailthruClient')
     def test_update_unenrolled_list_new(self, mock_sailthru_client):

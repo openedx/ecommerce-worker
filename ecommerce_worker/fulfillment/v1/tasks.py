@@ -3,9 +3,8 @@ from celery import shared_task
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
 from edx_rest_api_client import exceptions
-from edx_rest_api_client.client import EdxRestApiClient
 
-from ecommerce_worker.utils import get_configuration
+from ecommerce_worker.utils import get_configuration, get_ecommerce_client
 
 logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 
@@ -36,13 +35,8 @@ def fulfill_order(self, order_number, site_code=None):
     Returns:
         None
     """
-    ecommerce_api_root = get_configuration('ECOMMERCE_API_ROOT', site_code=site_code)
     max_fulfillment_retries = get_configuration('MAX_FULFILLMENT_RETRIES', site_code=site_code)
-    signing_key = get_configuration('JWT_SECRET_KEY', site_code=site_code)
-    issuer = get_configuration('JWT_ISSUER', site_code=site_code)
-    service_username = get_configuration('ECOMMERCE_SERVICE_USERNAME', site_code=site_code)
-
-    api = EdxRestApiClient(ecommerce_api_root, signing_key=signing_key, issuer=issuer, username=service_username)
+    api = get_ecommerce_client(site_code=site_code)
     try:
         logger.info('Requesting fulfillment of order [%s].', order_number)
         api.orders(order_number).fulfill.put()
