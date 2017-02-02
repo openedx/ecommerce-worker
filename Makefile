@@ -16,13 +16,14 @@ help:
 	@echo '                                                                                             '
 
 requirements:
-	pip install -qr requirements/local.txt --exists-action w
+	pip install -r requirements/local.txt
 
 worker:
 	celery -A ecommerce_worker worker --app=$(PACKAGE).celery_app:app --loglevel=info --queue=fulfillment,email_marketing
 
 test:
 	WORKER_CONFIGURATION_MODULE=ecommerce_worker.configuration.test nosetests \
+	--with-ignore-docstrings --logging-level=DEBUG --logging-clear-handlers \
 	--with-coverage --cover-branches --cover-html --cover-package=$(PACKAGE) $(PACKAGE)
 
 html_coverage:

@@ -87,5 +87,9 @@ SAILTHRU = {
     # dummy price for audit/honor (i.e., if cost = 0)
     #  Note: setting this value to 0 skips Sailthru calls for free transactions
     'SAILTHRU_MINIMUM_COST': 100,
-}
 
+    # Transactional email template name map
+    'templates': {
+        'course_refund': 'Course Refund',
+    }
+}
