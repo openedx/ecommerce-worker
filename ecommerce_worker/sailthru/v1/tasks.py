@@ -210,8 +210,9 @@ def can_retry_sailthru_request(error):
     """ Returns True if a Sailthru request and be re-submitted after an error has occurred.
 
     Responses with the following codes can be retried:
-         9: Internal Error
-        43: Too many [type] requests this minute to /[endpoint] API
+          9: Internal Error
+         43: Too many [type] requests this minute to /[endpoint] API
+        104: Connection reset by peer
 
     All other errors are considered failures, that should not be retried. A complete list of error codes is available at
     https://getstarted.sailthru.com/new-for-developers-overview/api/api-response-errors/.
@@ -223,7 +224,7 @@ def can_retry_sailthru_request(error):
         bool: Indicates if the original request can be retried.
     """
     code = error.get_error_code()
-    return code in (9, 43)
+    return code in (9, 43, 104)
 
 
 @shared_task(bind=True, ignore_result=True)

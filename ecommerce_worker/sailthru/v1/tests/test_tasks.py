@@ -559,6 +559,12 @@ class SailthruTests(TestCase):
         self.assertFalse(_update_unenrolled_list(mock_sailthru_client, TEST_EMAIL,
                                                  self.course_url, False))
 
+        mock_sailthru_client.reset_mock()
+        # simulate retryable error
+        mock_sailthru_client.api_get.return_value = MockSailthruResponse({}, error='Connection reset by peer', code=104)
+        self.assertFalse(_update_unenrolled_list(mock_sailthru_client, TEST_EMAIL,
+                                                 self.course_url, False))
+
         # test get error from Sailthru
         mock_sailthru_client.reset_mock()
         # simulate unretryable error
