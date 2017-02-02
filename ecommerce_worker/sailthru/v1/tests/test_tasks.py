@@ -1,15 +1,19 @@
 """Tests of Sailthru worker code."""
 import json
-import logging
 from decimal import Decimal
 from unittest import TestCase
 
 import httpretty
+from celery.exceptions import Retry
 from mock import patch
+from sailthru import SailthruClient
 from sailthru.sailthru_error import SailthruClientError
+from testfixtures import LogCapture
 
+from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.tasks import (
-    update_course_enrollment, _update_unenrolled_list, _get_course_content, _get_course_content_from_ecommerce
+    update_course_enrollment, _update_unenrolled_list, _get_course_content, _get_course_content_from_ecommerce,
+    send_course_refund_email
 )
 from ecommerce_worker.sailthru.v1.utils import get_sailthru_configuration
 from ecommerce_worker.utils import get_configuration
@@ -573,3 +577,98 @@ class SailthruTests(TestCase):
         mock_sailthru_client.api_get.side_effect = SailthruClientError
         self.assertFalse(_update_unenrolled_list(mock_sailthru_client, TEST_EMAIL,
                                                  self.course_url, False))
+
+
+class SendCourseRefundEmailTests(TestCase):
+    """ Validates the send_course_refund_email task. """
+    LOG_NAME = 'ecommerce_worker.sailthru.v1.tasks'
+    REFUND_ID = 1
+    SITE_CODE = 'test'
+
+    def execute_task(self):
+        """ Execute the send_course_refund_email task. """
+        send_course_refund_email(
+            'test@example.com', self.REFUND_ID, '$150.00', 'Test Course', 'EDX-123', 'http://example.com', None
+        )
+
+    def mock_api_response(self, status, body):
+        """ Mock the Sailthru send API. """
+        httpretty.register_uri(
+            httpretty.POST,
+            'https://api.sailthru.com/send',
+            status=status,
+            body=json.dumps(body),
+            content_type='application/json'
+        )
+
+    def test_client_instantiation_error(self):
+        """ Verify no message is sent if an error occurs while instantiating the Sailthru API client. """
+        with patch('ecommerce_worker.sailthru.v1.utils.get_sailthru_client', raises=SailthruError):
+            self.execute_task()
+
+    @patch('ecommerce_worker.sailthru.v1.tasks.logger.exception')
+    def test_api_client_error(self, mock_log):
+        """ Verify API client errors are logged. """
+        with patch.object(SailthruClient, 'send', side_effect=SailthruClientError):
+            self.execute_task()
+
+        mock_log.assert_called_once_with(
+            'A client error occurred while attempting to send a course refund notification for refund [%d].',
+            self.REFUND_ID
+        )
+
+    @httpretty.activate
+    def test_api_error_with_retry(self):
+        """ Verify the task is rescheduled if an API error occurs, and the request can be retried. """
+        error_code = 43
+        error_msg = 'This is a fake error.'
+        body = {
+            'error': error_code,
+            'errormsg': error_msg
+        }
+        self.mock_api_response(429, body)
+
+        with LogCapture() as log:
+            with self.assertRaises(Retry):
+                self.execute_task()
+
+        log.check(
+            (self.LOG_NAME, 'ERROR',
+             'An error occurred while attempting to send a course refund notification for refund [%d]: %d - %s' % (
+                 self.REFUND_ID, error_code, error_msg)),
+            (self.LOG_NAME, 'INFO',
+             'An attempt will be made again to send a course refund notification for refund [%d].' % self.REFUND_ID),
+        )
+
+    @httpretty.activate
+    def test_api_error_without_retry(self):
+        """ Verify error details are logged if an API error occurs, and the request can NOT be retried. """
+        error_code = 1
+        error_msg = 'This is a fake error.'
+        body = {
+            'error': error_code,
+            'errormsg': error_msg
+        }
+        self.mock_api_response(500, body)
+
+        with LogCapture() as log:
+            self.execute_task()
+
+        log.check(
+            (self.LOG_NAME, 'ERROR',
+             'An error occurred while attempting to send a course refund notification for refund [%d]: %d - %s' % (
+                 self.REFUND_ID, error_code, error_msg)),
+            (self.LOG_NAME, 'WARNING',
+             'No further attempts will be made to send a course refund notification for refund [%d].' % self.REFUND_ID),
+        )
+
+    @httpretty.activate
+    def test_message_sent(self):
+        """ Verify a message is logged after a successful API call to send the message. """
+        self.mock_api_response(200, {'send_id': '1234ABC'})
+
+        with LogCapture() as log:
+            self.execute_task()
+        log.check(
+            (self.LOG_NAME, 'INFO', 'Course refund notification sent for refund %d.' % self.REFUND_ID),
+        )

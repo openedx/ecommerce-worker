@@ -304,3 +304,67 @@ def update_course_enrollment(self, email, course_url, purchase_incomplete, mode,
 
     if not _record_purchase(sailthru_client, email, item, purchase_incomplete, message_id, options):
         schedule_retry(self, config)
+
+
+@shared_task(bind=True, ignore_result=True)
+def send_course_refund_email(self, email, refund_id, amount, course_name, order_number, order_url, site_code=None):
+    """ Sends the course refund email.
+
+    Args:
+        self: Ignore.
+        email (str): Recipient's email address.
+        refund_id (int): ID of the refund that initiated this task.
+        amount (str): Formatted amount of the refund.
+        course_name (str): Name of the course for which payment was refunded.
+        order_number (str): Order number of the order that was refunded.
+        order_url (str): Receipt URL of the refunded order.
+        site_code (str): Identifier of the site sending the email.
+    """
+    config = get_sailthru_configuration(site_code)
+
+    try:
+        sailthru_client = get_sailthru_client(site_code)
+    except SailthruError:
+        # NOTE: We rely on the function to log the error for us
+        return
+
+    email_vars = {
+        'amount': amount,
+        'course_name': course_name,
+        'order_number': order_number,
+        'order_url': order_url,
+    }
+
+    try:
+        response = sailthru_client.send(
+            template=config['templates']['course_refund'],
+            email=email,
+            _vars=email_vars
+        )
+    except SailthruClientError:
+        logger.exception(
+            'A client error occurred while attempting to send a course refund notification for refund [%d].',
+            refund_id
+        )
+        return
+
+    if response.is_ok():
+        logger.info('Course refund notification sent for refund %d.', refund_id)
+    else:
+        error = response.get_error()
+        logger.error(
+            'An error occurred while attempting to send a course refund notification for refund [%d]: %d - %s',
+            refund_id, error.get_error_code(), error.get_message()
+        )
+
+        if can_retry_sailthru_request(error):
+            logger.info(
+                'An attempt will be made again to send a course refund notification for refund [%d].',
+                refund_id
+            )
+            schedule_retry(self, config)
+        else:
+            logger.warning(
+                'No further attempts will be made to send a course refund notification for refund [%d].',
+                refund_id
+            )
