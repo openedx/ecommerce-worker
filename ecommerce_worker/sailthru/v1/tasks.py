@@ -23,7 +23,7 @@ def schedule_retry(self, config):
                      max_retries=config.get('SAILTHRU_RETRY_ATTEMPTS'))
 
 
-def _build_purchase_item(course_id, course_url, cost_in_cents, mode, course_data):
+def _build_purchase_item(course_id, course_url, cost_in_cents, mode, course_data, sku):
     """Build and return Sailthru purchase item object"""
 
     # build item description
@@ -46,6 +46,8 @@ def _build_purchase_item(course_id, course_url, cost_in_cents, mode, course_data
 
     # add vars to item
     item['vars'] = dict(course_data.get('vars', {}), mode=mode, course_run_id=course_id)
+
+    item['vars']['purchase_sku'] = sku
 
     return item
 
@@ -228,7 +230,7 @@ def can_retry_sailthru_request(error):
 
 @shared_task(bind=True, ignore_result=True)
 def update_course_enrollment(self, email, course_url, purchase_incomplete, mode, unit_cost=None, course_id=None,
-                             currency=None, message_id=None, site_code=None):
+                             currency=None, message_id=None, site_code=None, sku=None):
     """Adds/updates Sailthru when a user adds to cart/purchases/upgrades a course
 
      Args:
@@ -289,7 +291,7 @@ def update_course_enrollment(self, email, course_url, purchase_incomplete, mode,
     course_data = _get_course_content(course_id, course_url, sailthru_client, site_code, config)
 
     # build item description
-    item = _build_purchase_item(course_id, course_url, cost_in_cents, mode, course_data)
+    item = _build_purchase_item(course_id, course_url, cost_in_cents, mode, course_data, sku)
 
     # build purchase api options list
     options = {}

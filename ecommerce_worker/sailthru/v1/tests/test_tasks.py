@@ -125,6 +125,7 @@ class SailthruTests(TestCase):
             TEST_EMAIL,
             [{
                 'vars': {
+                    'purchase_sku': None,
                     'course_run_id': self.course_id,
                     'mode': 'verified',
                     'upgrade_deadline_verified': '2020-03-12'
@@ -169,6 +170,7 @@ class SailthruTests(TestCase):
             TEST_EMAIL,
             [{
                 'vars': {
+                    'purchase_sku': None,
                     'course_run_id': self.course_id2,
                     'mode': 'credit'
                 },
@@ -212,6 +214,7 @@ class SailthruTests(TestCase):
             TEST_EMAIL,
             [{
                 'vars': {
+                    'purchase_sku': None,
                     'course_run_id': self.course_id,
                     'mode': 'credit',
                     'upgrade_deadline_verified': '2020-03-12'
@@ -252,6 +255,7 @@ class SailthruTests(TestCase):
             TEST_EMAIL,
             [{
                 'vars': {
+                    'purchase_sku': None,
                     'course_run_id': self.course_id,
                     'mode': 'verified',
                     'upgrade_deadline_verified': '2020-03-12'
@@ -295,6 +299,7 @@ class SailthruTests(TestCase):
             TEST_EMAIL,
             [{
                 'vars': {
+                    'purchase_sku': None,
                     'course_run_id': self.course_id,
                     'mode': 'verified',
                     'upgrade_deadline_verified': '2020-03-12'
@@ -334,6 +339,7 @@ class SailthruTests(TestCase):
             TEST_EMAIL,
             [{
                 'vars': {
+                    'purchase_sku': None,
                     'course_run_id': self.course_id,
                     'mode': 'audit',
                     'upgrade_deadline_verified': '2020-03-12'
