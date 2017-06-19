@@ -84,10 +84,6 @@ SAILTHRU = {
     # ttl for cached course content from Sailthru (in seconds)
     'SAILTHRU_CACHE_TTL_SECONDS': 3600,
 
-    # dummy price for audit/honor (i.e., if cost = 0)
-    #  Note: setting this value to 0 skips Sailthru calls for free transactions
-    'SAILTHRU_MINIMUM_COST': 100,
-
     # Transactional email template name map
     'templates': {
         'course_refund': 'Course Refund',

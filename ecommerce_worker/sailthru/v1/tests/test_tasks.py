@@ -15,7 +15,6 @@ from ecommerce_worker.sailthru.v1.tasks import (
     update_course_enrollment, _update_unenrolled_list, _get_course_content, _get_course_content_from_ecommerce,
     send_course_refund_email
 )
-from ecommerce_worker.sailthru.v1.utils import get_sailthru_configuration
 from ecommerce_worker.utils import get_configuration
 
 TEST_EMAIL = "test@edx.org"
@@ -346,43 +345,14 @@ class SailthruTests(TestCase):
                 },
                 'title': 'Course ' + self.course_id + ' mode: audit',
                 'url': self.course_url,
-                'price': 100, 'qty': 1,
+                'price': 0,
+                'qty': 1,
                 'id': self.course_id + '-audit'
             }],
             options={'send_template': 'enroll_template'},
             incomplete=False,
             message_id='cookie_bid'
         )
-
-    @patch('ecommerce_worker.sailthru.v1.tasks.get_sailthru_configuration')
-    @patch('ecommerce_worker.sailthru.v1.utils.SailthruClient.purchase')
-    @patch('ecommerce_worker.sailthru.v1.utils.SailthruClient.api_get')
-    @patch('ecommerce_worker.sailthru.v1.utils.SailthruClient.api_post')
-    def test_update_course_enroll_skip(self, mock_sailthru_api_post,
-                                       mock_sailthru_api_get, mock_sailthru_purchase,
-                                       mock_get_configuration):
-        """test audit enroll with configured cost = 0"""
-
-        config = get_sailthru_configuration(None)
-        config['SAILTHRU_MINIMUM_COST'] = 0
-        mock_get_configuration.return_value = config
-
-        # create mocked Sailthru API responses
-        mock_sailthru_api_post.return_value = MockSailthruResponse({'ok': True})
-        mock_sailthru_api_get.return_value = MockSailthruResponse({'vars': {'upgrade_deadline_verified': '2020-03-12'}})
-        mock_sailthru_purchase.return_value = MockSailthruResponse({'ok': True})
-
-        update_course_enrollment.delay(
-            TEST_EMAIL,
-            self.course_url,
-            False,
-            'audit',
-            course_id=self.course_id,
-            currency='USD',
-            message_id='cookie_bid',
-            unit_cost=Decimal(0)
-        )
-        mock_sailthru_purchase.assert_not_called()
 
     @patch('ecommerce_worker.sailthru.v1.tasks.logger.error')
     @patch('ecommerce_worker.sailthru.v1.utils.SailthruClient.purchase')

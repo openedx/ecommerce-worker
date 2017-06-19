@@ -276,11 +276,6 @@ def update_course_enrollment(self, email, course_url, purchase_incomplete, mode,
     # calc price in pennies for Sailthru
     #  https://getstarted.sailthru.com/new-for-developers-overview/advanced-features/purchase/
     cost_in_cents = int(unit_cost * 100)
-    if not cost_in_cents:
-        cost_in_cents = config.get('SAILTHRU_MINIMUM_COST')
-        # if still zero, ignore purchase since Sailthru can't deal with $0 transactions
-        if not cost_in_cents:
-            return
 
     # update the "unenrolled" course array in the user record on Sailthru if new enroll or unenroll
     if new_enroll:
