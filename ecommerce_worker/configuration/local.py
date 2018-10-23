@@ -13,7 +13,7 @@ BROKER_URL = 'amqp://'
 
 
 # ORDER FULFILLMENT
-ECOMMERCE_API_ROOT = 'http://localhost:8002/api/v2/'
+ECOMMERCE_API_ROOT = 'http://localhost:18130/api/v2/'
 # END ORDER FULFILLMENT
 
 # AUTHENTICATION

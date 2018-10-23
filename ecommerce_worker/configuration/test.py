@@ -10,7 +10,7 @@ CELERY_ALWAYS_EAGER = True
 
 
 # ORDER FULFILLMENT
-ECOMMERCE_API_ROOT = 'http://localhost:8002/api/v2/'
+ECOMMERCE_API_ROOT = 'http://localhost:18130/api/v2/'
 WORKER_ACCESS_TOKEN = 'fake-access-token'
 # END ORDER FULFILLMENT
 
