@@ -26,7 +26,7 @@ def _retry_order(self, exception, max_fulfillment_retries, order_number):
 
 
 @shared_task(bind=True, ignore_result=True)
-def fulfill_order(self, order_number, site_code=None):
+def fulfill_order(self, order_number, site_code=None, email_opt_in=False):
     """Fulfills an order.
 
     Arguments:
@@ -39,7 +39,7 @@ def fulfill_order(self, order_number, site_code=None):
     api = get_ecommerce_client(site_code=site_code)
     try:
         logger.info('Requesting fulfillment of order [%s].', order_number)
-        api.orders(order_number).fulfill.put()
+        api.orders(order_number).fulfill.put(email_opt_in=email_opt_in)
     except exceptions.HttpClientError as exc:
         status_code = exc.response.status_code  # pylint: disable=no-member
         if status_code == 406:

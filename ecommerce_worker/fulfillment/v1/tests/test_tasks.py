@@ -108,6 +108,27 @@ class OrderFulfillmentTaskTests(TestCase):
         result = fulfill_order.delay(self.ORDER_NUMBER).get()
         self.assertIsNone(result)
 
+    @ddt.data(
+        [True, 'True'],
+        [False, 'False']
+    )
+    @ddt.unpack
+    @httpretty.activate
+    def test_email_opt_in_parameter_sent(self, email_opt_in_bool, email_opt_in_str):
+        """Verify that the task correctly adds the email_opt_in parameter to the request."""
+        email_opt_in_api_url = self.API_URL + '?email_opt_in=' + email_opt_in_str
+        httpretty.register_uri(httpretty.PUT, email_opt_in_api_url, status=200, body={})
+
+        result = fulfill_order.delay(self.ORDER_NUMBER, email_opt_in=email_opt_in_bool).get()
+        self.assertIsNone(result)
+
+        last_request = httpretty.last_request()
+        self.assertIn('?email_opt_in=' + email_opt_in_str, last_request.path)
+        # QueryDicts store their values as lists in case multiple values are passed in.
+        # last_request.querystring is returned as a dict instead of a QueryDict
+        # so we have the grab the first element in the list to actually get the value.
+        self.assertEqual(last_request.querystring['email_opt_in'][0], email_opt_in_str)
+
     def _timeout_body(self, request, uri, headers):  # pylint: disable=unused-argument
         """Helper used to force httpretty to raise Timeout exceptions."""
         raise exceptions.Timeout
