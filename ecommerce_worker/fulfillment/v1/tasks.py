@@ -1,4 +1,6 @@
 """Order fulfillment tasks."""
+from ssl import SSLError
+
 from celery import shared_task
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
@@ -55,6 +57,6 @@ def fulfill_order(self, order_number, site_code=None, email_opt_in=False):
             )
             _retry_order(self, exc, max_fulfillment_retries, order_number)
 
-    except (exceptions.HttpServerError, exceptions.Timeout) as exc:
+    except (exceptions.HttpServerError, exceptions.Timeout, SSLError) as exc:
         # Fulfillment failed, retry
         _retry_order(self, exc, max_fulfillment_retries, order_number)
