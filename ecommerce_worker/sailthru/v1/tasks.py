@@ -10,6 +10,7 @@ from ecommerce_worker.cache import Cache
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.utils import get_sailthru_client, get_sailthru_configuration
 from ecommerce_worker.utils import get_ecommerce_client
+from requests.exceptions import RequestException
 
 logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 cache = Cache()  # pylint: disable=invalid-name
@@ -365,3 +366,107 @@ def send_course_refund_email(self, email, refund_id, amount, course_name, order_
                 'No further attempts will be made to send a course refund notification for refund [%d].',
                 refund_id
             )
+
+
+@shared_task(bind=True, ignore_result=True)
+def send_offer_assignment_email(self, user_email, offer_id, subject, email_body, site_code=None):
+    """ Sends the offer assignment email.
+    Args:
+        self: Ignore.
+        user_email (str): Recipient's email address.
+        offer_id (str): Key of the entry in the offer_assignment model.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+    """
+    config = get_sailthru_configuration(site_code)
+    try:
+        sailthru_client = get_sailthru_client(site_code)
+    except SailthruError:
+        logger.exception(
+            '[Offer Assignment] A client error occurred while attempting to send a offer assignment notification.'
+            ' Message: {message}'.format(message=email_body)
+        )
+        return
+    email_vars = {
+        'subject': subject,
+        'email_body': email_body,
+    }
+    try:
+        response = sailthru_client.send(
+            template=config['templates']['assignment_email'],
+            email=user_email,
+            _vars=email_vars
+        )
+    except SailthruClientError:
+        logger.exception(
+            '[Offer Assignment] A client error occurred while attempting to send a offer assignment notification.'
+            ' Message: {message}'.format(message=email_body)
+        )
+        return
+    if response.is_ok():
+        send_id = response.get_body().get('send_id')  # pylint: disable=no-member
+        if _update_assignment_email_status(offer_id, send_id, 'success'):
+            logger.info('[Offer Assignment] Offer assignment notification sent with message --- {message}'.format(
+                message=email_body))
+        else:
+            logger.exception(
+                '[Offer Assignment] An error occurred while updating email status data for '
+                'offer {token_offer} and email {token_email} via the ecommerce API.'.format(
+                    token_offer=offer_id,
+                    token_email=user_email,
+                )
+            )
+    else:
+        error = response.get_error()
+        logger.error(
+            '[Offer Assignment] A {token_error_code} - {token_error_message} error occurred'
+            ' while attempting to send a offer assignment notification.'
+            ' Message: {message}'.format(
+                message=email_body,
+                token_error_code=error.get_error_code(),
+                token_error_message=error.get_message()
+            )
+        )
+        if can_retry_sailthru_request(error):
+            logger.info(
+                '[Offer Assignment] An attempt will be made to resend the offer assignment notification.'
+                ' Message: {message}'.format(message=email_body)
+            )
+            schedule_retry(self, config)
+        else:
+            logger.warning(
+                '[Offer Assignment] No further attempts will be made to send the offer assignment notification.'
+                ' Failed Message: {message}'.format(message=email_body)
+            )
+
+
+def _update_assignment_email_status(offer_id, send_id, status, site_code=None):
+    """
+    Update the offer_assignment and offer_assignment_email model using the Ecommerce assignmentemail api.
+    Arguments:
+        offer_id (str): Key of the entry in the offer_assignment model.
+        send_id (str): Unique message id from Sailthru
+        status (str): status to be sent to the api
+        site_code (str): site code
+    Returns:
+        True or False based on model update status from Ecommerce api
+    """
+    api = get_ecommerce_client(site_code=site_code)
+    post_data = {
+        'offer_id': offer_id,
+        'send_id': send_id,
+        'status': status,
+    }
+    try:
+        api_response = api.assignmentemail().updatestatus().post(post_data)
+    except RequestException:
+        logger.exception(
+            '[Offer Assignment] An error occurred while updating offer assignment email status for '
+            'offer id {token_offer} and message id {token_send_id} via the Ecommerce API.'.format(
+                token_offer=offer_id,
+                token_send_id=send_id
+            )
+        )
+        return False
+    return True if api_response.get('status') == 'updated' else False
