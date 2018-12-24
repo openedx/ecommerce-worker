@@ -369,12 +369,12 @@ def send_course_refund_email(self, email, refund_id, amount, course_name, order_
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_assignment_email(self, user_email, offer_id, subject, email_body, site_code=None):
+def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body, site_code=None):
     """ Sends the offer assignment email.
     Args:
         self: Ignore.
         user_email (str): Recipient's email address.
-        offer_id (str): Key of the entry in the offer_assignment model.
+        offer_assignment_id (str): Key of the entry in the offer_assignment model.
         subject (str): Email subject.
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
@@ -406,14 +406,14 @@ def send_offer_assignment_email(self, user_email, offer_id, subject, email_body,
         return
     if response.is_ok():
         send_id = response.get_body().get('send_id')  # pylint: disable=no-member
-        if _update_assignment_email_status(offer_id, send_id, 'success'):
+        if _update_assignment_email_status(offer_assignment_id, send_id, 'success'):
             logger.info('[Offer Assignment] Offer assignment notification sent with message --- {message}'.format(
                 message=email_body))
         else:
             logger.exception(
                 '[Offer Assignment] An error occurred while updating email status data for '
                 'offer {token_offer} and email {token_email} via the ecommerce API.'.format(
-                    token_offer=offer_id,
+                    token_offer=offer_assignment_id,
                     token_email=user_email,
                 )
             )
@@ -441,30 +441,30 @@ def send_offer_assignment_email(self, user_email, offer_id, subject, email_body,
             )
 
 
-def _update_assignment_email_status(offer_id, send_id, status, site_code=None):
+def _update_assignment_email_status(offer_assignment_id, send_id, status, site_code=None):
     """
     Update the offer_assignment and offer_assignment_email model using the Ecommerce assignmentemail api.
     Arguments:
-        offer_id (str): Key of the entry in the offer_assignment model.
+        offer_assignment_id (str): Key of the entry in the offer_assignment model.
         send_id (str): Unique message id from Sailthru
         status (str): status to be sent to the api
         site_code (str): site code
     Returns:
         True or False based on model update status from Ecommerce api
     """
-    api = get_ecommerce_client(site_code=site_code)
+    api = get_ecommerce_client(url_postfix='assignment-email/', site_code=site_code)
     post_data = {
-        'offer_id': offer_id,
+        'offer_assignment_id': offer_assignment_id,
         'send_id': send_id,
         'status': status,
     }
     try:
-        api_response = api.assignmentemail().updatestatus().post(post_data)
+        api_response = api.status().post(post_data)
     except RequestException:
         logger.exception(
             '[Offer Assignment] An error occurred while updating offer assignment email status for '
             'offer id {token_offer} and message id {token_send_id} via the Ecommerce API.'.format(
-                token_offer=offer_id,
+                token_offer=offer_assignment_id,
                 token_send_id=send_id
             )
         )

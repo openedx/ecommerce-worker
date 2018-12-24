@@ -657,7 +657,7 @@ class SendOfferAssignmentEmailTests(TestCase):
     """ Validates the send_offer_assignment_email task. """
     LOG_NAME = 'ecommerce_worker.sailthru.v1.tasks'
     USER_EMAIL = 'user@unknown.com'
-    OFFER_ID = '555'
+    OFFER_ASSIGNMENT_ID = '555'
     SEND_ID = '1234ABC'
     SUBJECT = 'New edX course assignment'
     EMAIL_BODY = 'Template message with johndoe@unknown.com GIL7RUEOU7VHBH7Q ' \
@@ -665,7 +665,7 @@ class SendOfferAssignmentEmailTests(TestCase):
 
     def execute_task(self):
         """ Execute the send_offer_assignment_email task. """
-        send_offer_assignment_email(self.USER_EMAIL, self.OFFER_ID, self.SUBJECT, self.EMAIL_BODY, None)
+        send_offer_assignment_email(self.USER_EMAIL, self.OFFER_ASSIGNMENT_ID, self.SUBJECT, self.EMAIL_BODY, None)
 
     def mock_api_response(self, status, body):
         """ Mock the Sailthru send API. """
@@ -681,7 +681,7 @@ class SendOfferAssignmentEmailTests(TestCase):
         """ Mock POST requests to the ecommerce assignmentemail API endpoint. """
         httpretty.reset()
         httpretty.register_uri(
-            httpretty.POST, '{}/assignmentemail/updatestatus/'.format(
+            httpretty.POST, '{}/assignment-email/status/'.format(
                 get_configuration('ECOMMERCE_API_ROOT').strip('/')
             ),
             status=status,
@@ -786,11 +786,11 @@ class SendOfferAssignmentEmailTests(TestCase):
         log.check(
             (self.LOG_NAME, 'ERROR', '[Offer Assignment] An error occurred while updating offer assignment email status'
              ' for offer id {token_offer} and message id {token_send_id} via the Ecommerce API.'.format(
-                 token_offer=self.OFFER_ID,
+                 token_offer=self.OFFER_ASSIGNMENT_ID,
                  token_send_id=self.SEND_ID)),
             (self.LOG_NAME, 'ERROR', '[Offer Assignment] An error occurred while updating email status data for '
              'offer {token_offer} and email {token_email} via the ecommerce API.'.format(
-                 token_offer=self.OFFER_ID,
+                 token_offer=self.OFFER_ASSIGNMENT_ID,
                  token_email=self.USER_EMAIL,))
         )
 
@@ -799,7 +799,7 @@ class SendOfferAssignmentEmailTests(TestCase):
         (
             # Success case
             {
-                'offer_id': '555',
+                'offer_assignment_id': '555',
                 'send_id': '1234ABC',
                 'status': 'updated',
                 'error': ''
@@ -809,7 +809,7 @@ class SendOfferAssignmentEmailTests(TestCase):
         (
             # Exception case
             {
-                'offer_id': '555',
+                'offer_assignment_id': '555',
                 'send_id': '1234ABC',
                 'status': 'failed',
                 'error': ''
