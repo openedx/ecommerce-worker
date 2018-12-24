@@ -46,9 +46,12 @@ def get_configuration(variable, site_code=None):
     return setting_value
 
 
-def get_ecommerce_client(site_code=None):
+def get_ecommerce_client(url_postfix='', site_code=None):
     """
-    Get client for fetching data from ecommerce API
+    Get client for fetching data from ecommerce API.
+    Arguments:
+        site_code (str): (Optional) The SITE_OVERRIDES key to inspect for site-specific values
+        url_postfix (str): (Optional) The URL postfix value to append to the ECOMMERCE_API_ROOT value.
 
     Returns:
         EdxRestApiClient object
@@ -57,4 +60,5 @@ def get_ecommerce_client(site_code=None):
     signing_key = get_configuration('JWT_SECRET_KEY', site_code=site_code)
     issuer = get_configuration('JWT_ISSUER', site_code=site_code)
     service_username = get_configuration('ECOMMERCE_SERVICE_USERNAME', site_code=site_code)
-    return EdxRestApiClient(ecommerce_api_root, signing_key=signing_key, issuer=issuer, username=service_username)
+    return EdxRestApiClient(
+        ecommerce_api_root + url_postfix, signing_key=signing_key, issuer=issuer, username=service_username)
