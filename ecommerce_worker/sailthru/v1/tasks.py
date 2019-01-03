@@ -380,6 +380,24 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
         site_code (str): Identifier of the site sending the email.
     """
     config = get_sailthru_configuration(site_code)
+    response = _send_offer_assignment_notification_email(config, user_email, subject, email_body, site_code, self)
+    if response and response.is_ok():
+        send_id = response.get_body().get('send_id')  # pylint: disable=no-member
+        if _update_assignment_email_status(offer_assignment_id, send_id, 'success'):
+            logger.info('[Offer Assignment] Offer assignment notification sent with message --- {message}'.format(
+                message=email_body))
+        else:
+            logger.exception(
+                '[Offer Assignment] An error occurred while updating email status data for '
+                'offer {token_offer} and email {token_email} via the ecommerce API.'.format(
+                    token_offer=offer_assignment_id,
+                    token_email=user_email,
+                )
+            )
+
+
+def _send_offer_assignment_notification_email(config, user_email, subject, email_body, site_code, task):
+    """Handles sending offer assignment notification emails and retrying failed emails when appropriate."""
     try:
         sailthru_client = get_sailthru_client(site_code)
     except SailthruError:
@@ -387,7 +405,7 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
             '[Offer Assignment] A client error occurred while attempting to send a offer assignment notification.'
             ' Message: {message}'.format(message=email_body)
         )
-        return
+        return None
     email_vars = {
         'subject': subject,
         'email_body': email_body,
@@ -403,21 +421,9 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
             '[Offer Assignment] A client error occurred while attempting to send a offer assignment notification.'
             ' Message: {message}'.format(message=email_body)
         )
-        return
-    if response.is_ok():
-        send_id = response.get_body().get('send_id')  # pylint: disable=no-member
-        if _update_assignment_email_status(offer_assignment_id, send_id, 'success'):
-            logger.info('[Offer Assignment] Offer assignment notification sent with message --- {message}'.format(
-                message=email_body))
-        else:
-            logger.exception(
-                '[Offer Assignment] An error occurred while updating email status data for '
-                'offer {token_offer} and email {token_email} via the ecommerce API.'.format(
-                    token_offer=offer_assignment_id,
-                    token_email=user_email,
-                )
-            )
-    else:
+        return None
+
+    if not response.is_ok():
         error = response.get_error()
         logger.error(
             '[Offer Assignment] A {token_error_code} - {token_error_message} error occurred'
@@ -433,12 +439,14 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
                 '[Offer Assignment] An attempt will be made to resend the offer assignment notification.'
                 ' Message: {message}'.format(message=email_body)
             )
-            schedule_retry(self, config)
+            schedule_retry(task, config)
         else:
             logger.warning(
                 '[Offer Assignment] No further attempts will be made to send the offer assignment notification.'
                 ' Failed Message: {message}'.format(message=email_body)
             )
+
+    return response
 
 
 def _update_assignment_email_status(offer_assignment_id, send_id, status, site_code=None):
@@ -470,3 +478,17 @@ def _update_assignment_email_status(offer_assignment_id, send_id, status, site_c
         )
         return False
     return True if api_response.get('status') == 'updated' else False
+
+
+@shared_task(bind=True, ignore_result=True)
+def send_offer_update_email(self, user_email, subject, email_body, site_code=None):
+    """ Sends the offer emails after assignment, either for revoking or reminding.
+    Args:
+        self: Ignore.
+        user_email (str): Recipient's email address.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+    """
+    config = get_sailthru_configuration(site_code)
+    _send_offer_assignment_notification_email(config, user_email, subject, email_body, site_code, self)
