@@ -15,7 +15,7 @@ from requests.exceptions import RequestException
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.tasks import (
     update_course_enrollment, _update_unenrolled_list, _get_course_content, _get_course_content_from_ecommerce,
-    send_course_refund_email, send_offer_assignment_email, _update_assignment_email_status
+    send_course_refund_email, send_offer_assignment_email, send_offer_update_email, _update_assignment_email_status
 )
 from ecommerce_worker.utils import get_configuration
 
@@ -663,9 +663,22 @@ class SendOfferAssignmentEmailTests(TestCase):
     EMAIL_BODY = 'Template message with johndoe@unknown.com GIL7RUEOU7VHBH7Q ' \
                  'http://tempurl.url/enroll 3 2012-04-23'
 
+    ASSIGNMENT_TASK_KWARGS = {
+        'user_email': USER_EMAIL,
+        'offer_assignment_id': OFFER_ASSIGNMENT_ID,
+        'subject': SUBJECT,
+        'email_body': EMAIL_BODY,
+    }
+
+    UPDATE_TASK_KWARGS = {
+        'user_email': USER_EMAIL,
+        'subject': SUBJECT,
+        'email_body': EMAIL_BODY,
+    }
+
     def execute_task(self):
         """ Execute the send_offer_assignment_email task. """
-        send_offer_assignment_email(self.USER_EMAIL, self.OFFER_ASSIGNMENT_ID, self.SUBJECT, self.EMAIL_BODY, None)
+        send_offer_assignment_email(**self.ASSIGNMENT_TASK_KWARGS)
 
     def mock_api_response(self, status, body):
         """ Mock the Sailthru send API. """
@@ -689,27 +702,42 @@ class SendOfferAssignmentEmailTests(TestCase):
         )
 
     @patch('ecommerce_worker.sailthru.v1.tasks.get_sailthru_client', Mock(side_effect=SailthruError))
-    def test_client_instantiation_error(self):
+    @ddt.data(
+        (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS),
+        (send_offer_update_email, UPDATE_TASK_KWARGS),
+    )
+    @ddt.unpack
+    def test_client_instantiation_error(self, task, task_kwargs):
         """ Verify no message is sent if an error occurs while instantiating the Sailthru API client. """
         with LogCapture(level=logging.INFO) as log:
-            self.execute_task()
+            task(**task_kwargs)
         log.check(
             (self.LOG_NAME, 'ERROR', '[Offer Assignment] A client error occurred while attempting to send'
              ' a offer assignment notification. Message: {message}'.format(message=self.EMAIL_BODY)),
         )
 
     @patch('ecommerce_worker.sailthru.v1.tasks.logger.exception')
-    def test_api_client_error(self, mock_log):
+    @ddt.data(
+        (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS),
+        (send_offer_update_email, UPDATE_TASK_KWARGS),
+    )
+    @ddt.unpack
+    def test_api_client_error(self, task, task_kwargs, mock_log):
         """ Verify API client errors are logged. """
         with patch.object(SailthruClient, 'send', side_effect=SailthruClientError):
-            self.execute_task()
+            task(**task_kwargs)
         mock_log.assert_called_once_with(
             '[Offer Assignment] A client error occurred while attempting to send a offer assignment notification.'
             ' Message: {message}'.format(message=self.EMAIL_BODY)
         )
 
     @httpretty.activate
-    def test_api_error_with_retry(self):
+    @ddt.data(
+        (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS),
+        (send_offer_update_email, UPDATE_TASK_KWARGS),
+    )
+    @ddt.unpack
+    def test_api_error_with_retry(self, task, task_kwargs):
         """ Verify the task is rescheduled if an API error occurs, and the request can be retried. """
         error_code = 43
         error_msg = 'This is a fake error.'
@@ -720,7 +748,7 @@ class SendOfferAssignmentEmailTests(TestCase):
         self.mock_api_response(429, body)
         with LogCapture(level=logging.INFO) as log:
             with self.assertRaises(Retry):
-                self.execute_task()
+                task(**task_kwargs)
         log.check(
             (self.LOG_NAME, 'ERROR',
              '[Offer Assignment] A {token_error_code} - {token_error_message} error occurred'
@@ -736,7 +764,12 @@ class SendOfferAssignmentEmailTests(TestCase):
         )
 
     @httpretty.activate
-    def test_api_error_without_retry(self):
+    @ddt.data(
+        (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS),
+        (send_offer_update_email, UPDATE_TASK_KWARGS),
+    )
+    @ddt.unpack
+    def test_api_error_without_retry(self, task, task_kwargs):
         """ Verify error details are logged if an API error occurs, and the request can NOT be retried. """
         error_code = 1
         error_msg = 'This is a fake error.'
@@ -746,7 +779,7 @@ class SendOfferAssignmentEmailTests(TestCase):
         }
         self.mock_api_response(500, body)
         with LogCapture(level=logging.INFO) as log:
-            self.execute_task()
+            task(**task_kwargs)
         log.check(
             (self.LOG_NAME, 'ERROR',
              '[Offer Assignment] A {token_error_code} - {token_error_message} error occurred'
