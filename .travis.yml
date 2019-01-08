@@ -6,6 +6,7 @@ sudo: required
 branches:
   only:
     - master
+    - /^\d+\.\d+(\.\d+)?(-\S*)?$/
 
 services:
     - docker
