@@ -17,8 +17,8 @@ cache = Cache()  # pylint: disable=invalid-name
 
 try:
     unicode        # Python 2
-except NameError:
-    unicode = str  # Python 3
+except NameError:  # Python 3
+    unicode = str  # pylint: disable=invalid-name,redefined-builtin
 
 
 # pylint: disable=unused-argument
