@@ -19,6 +19,11 @@ from ecommerce_worker.sailthru.v1.tasks import (
 )
 from ecommerce_worker.utils import get_configuration
 
+try:
+    unicode        # Python 2
+except NameError:
+    unicode = str  # Python 3
+
 TEST_EMAIL = "test@edx.org"
 
 
