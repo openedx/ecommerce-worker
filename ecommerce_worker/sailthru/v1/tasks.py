@@ -15,6 +15,11 @@ from requests.exceptions import RequestException
 logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 cache = Cache()  # pylint: disable=invalid-name
 
+try:
+    unicode        # Python 2
+except NameError:
+    unicode = str  # Python 3
+
 
 # pylint: disable=unused-argument
 
