@@ -21,8 +21,8 @@ from ecommerce_worker.utils import get_configuration
 
 try:
     unicode        # Python 2
-except NameError:
-    unicode = str  # Python 3
+except NameError:  # Python 3
+    unicode = str  # pylint: disable=invalid-name,redefined-builtin
 
 TEST_EMAIL = "test@edx.org"
 
