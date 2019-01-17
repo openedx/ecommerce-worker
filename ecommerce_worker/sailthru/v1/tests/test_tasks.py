@@ -12,17 +12,13 @@ from sailthru import SailthruClient
 from sailthru.sailthru_error import SailthruClientError
 from testfixtures import LogCapture
 from requests.exceptions import RequestException
+from six import text_type
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.tasks import (
     update_course_enrollment, _update_unenrolled_list, _get_course_content, _get_course_content_from_ecommerce,
     send_course_refund_email, send_offer_assignment_email, send_offer_update_email, _update_assignment_email_status
 )
 from ecommerce_worker.utils import get_configuration
-
-try:
-    unicode        # Python 2
-except NameError:  # Python 3
-    unicode = str  # pylint: disable=invalid-name,redefined-builtin
 
 TEST_EMAIL = "test@edx.org"
 
@@ -89,7 +85,7 @@ class SailthruTests(TestCase):
         httpretty.reset()
         httpretty.register_uri(
             httpretty.GET, '{}/courses/{}/'.format(
-                get_configuration('ECOMMERCE_API_ROOT').strip('/'), unicode(course_id)
+                get_configuration('ECOMMERCE_API_ROOT').strip('/'), text_type(course_id)
             ),
             status=status,
             body=json.dumps(body), content_type='application/json',
