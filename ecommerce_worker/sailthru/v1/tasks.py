@@ -11,14 +11,10 @@ from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.utils import get_sailthru_client, get_sailthru_configuration
 from ecommerce_worker.utils import get_ecommerce_client
 from requests.exceptions import RequestException
+from six import text_type
 
 logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 cache = Cache()  # pylint: disable=invalid-name
-
-try:
-    unicode        # Python 2
-except NameError:  # Python 3
-    unicode = str  # pylint: disable=invalid-name,redefined-builtin
 
 
 # pylint: disable=unused-argument
@@ -83,7 +79,7 @@ def _record_purchase(sailthru_client, email, item, purchase_incomplete, message_
             return not can_retry_sailthru_request(error)
 
     except SailthruClientError as exc:
-        logger.exception("Exception attempting to record purchase for %s in Sailthru - %s", email, unicode(exc))
+        logger.exception("Exception attempting to record purchase for %s in Sailthru - %s", email, text_type(exc))
         return False
 
     return True
@@ -210,7 +206,7 @@ def _update_unenrolled_list(sailthru_client, email, course_url, unenroll):
         return True
 
     except SailthruClientError as exc:
-        logger.exception("Exception attempting to update user record for %s in Sailthru - %s", email, unicode(exc))
+        logger.exception("Exception attempting to update user record for %s in Sailthru - %s", email, text_type(exc))
         return False
 
 
