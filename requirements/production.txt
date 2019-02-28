@@ -2,4 +2,3 @@
 -r base.txt
 
 PyYAML==3.11
-six==1.12.0
