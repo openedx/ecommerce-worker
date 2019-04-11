@@ -25,6 +25,8 @@ CELERY_IMPORTS = (
     'ecommerce_worker.sailthru.v1.tasks',
 )
 
+DEFAULT_PRIORITY_QUEUE = 'ecommerce'
+CELERY_DEFAULT_QUEUE = DEFAULT_PRIORITY_QUEUE
 # Prevent Celery from removing handlers on the root logger. Allows setting custom logging handlers.
 # See http://celery.readthedocs.org/en/latest/configuration.html#celeryd-hijack-root-logger.
 CELERYD_HIJACK_ROOT_LOGGER = False
