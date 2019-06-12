@@ -34,6 +34,7 @@ SITE_OVERRIDES = {}
 
 # Sailthru support unit test settings
 SAILTHRU.update({
+    'SAILTHRU_ENABLE': True,
     'SAILTHRU_UPGRADE_TEMPLATE': 'upgrade_template',
     'SAILTHRU_PURCHASE_TEMPLATE': 'purchase_template',
     'SAILTHRU_ENROLL_TEMPLATE': 'enroll_template',
