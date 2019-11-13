@@ -1,5 +1,4 @@
 ---
-# Ansible managed
 
 BROKER_URL: amqp://celery:celery@172.17.0.2:5672
 ECOMMERCE_API_ROOT: http://127.0.0.1:8002/api/v2/
