@@ -7,7 +7,7 @@ from decimal import Decimal
 from unittest import TestCase
 import ddt
 
-import httpretty
+import responses
 from celery.exceptions import Retry
 from mock import patch, Mock
 from sailthru import SailthruClient
@@ -84,9 +84,9 @@ class SailthruTests(TestCase):
 
     def mock_ecommerce_api(self, body, course_id, status=200):
         """ Mock GET requests to the ecommerce course API endpoint. """
-        httpretty.reset()
-        httpretty.register_uri(
-            httpretty.GET, '{}/courses/{}/'.format(
+        responses.reset()
+        responses.add(
+            responses.GET, '{}/courses/{}/'.format(
                 get_configuration('ECOMMERCE_API_ROOT').strip('/'), text_type(course_id)
             ),
             status=status,
@@ -420,7 +420,7 @@ class SailthruTests(TestCase):
         )
         self.assertTrue(mock_log_error.called)
 
-    @httpretty.activate
+    @responses.activate
     @patch('ecommerce_worker.sailthru.v1.utils.SailthruClient')
     def test_get_course_content(self, mock_sailthru_client):
         """
@@ -469,7 +469,7 @@ class SailthruTests(TestCase):
             _get_course_content(self.course_id2, 'course:126', mock_sailthru_client, None, config), {}
         )
 
-    @httpretty.activate
+    @responses.activate
     def test_get_course_content_from_ecommerce(self):
         """
         Test routine that fetches data from ecommerce.
@@ -574,8 +574,8 @@ class SendCourseRefundEmailTests(TestCase):
 
     def mock_api_response(self, status, body):
         """ Mock the Sailthru send API. """
-        httpretty.register_uri(
-            httpretty.POST,
+        responses.add(
+            responses.POST,
             'https://api.sailthru.com/send',
             status=status,
             body=json.dumps(body),
@@ -598,7 +598,7 @@ class SendCourseRefundEmailTests(TestCase):
             self.REFUND_ID
         )
 
-    @httpretty.activate
+    @responses.activate
     def test_api_error_with_retry(self):
         """ Verify the task is rescheduled if an API error occurs, and the request can be retried. """
         error_code = 43
@@ -621,7 +621,7 @@ class SendCourseRefundEmailTests(TestCase):
              'An attempt will be made again to send a course refund notification for refund [%d].' % self.REFUND_ID),
         )
 
-    @httpretty.activate
+    @responses.activate
     def test_api_error_without_retry(self):
         """ Verify error details are logged if an API error occurs, and the request can NOT be retried. """
         error_code = 1
@@ -643,7 +643,7 @@ class SendCourseRefundEmailTests(TestCase):
              'No further attempts will be made to send a course refund notification for refund [%d].' % self.REFUND_ID),
         )
 
-    @httpretty.activate
+    @responses.activate
     def test_message_sent(self):
         """ Verify a message is logged after a successful API call to send the message. """
         self.mock_api_response(200, {'send_id': '1234ABC'})
@@ -685,8 +685,8 @@ class SendOfferAssignmentEmailTests(TestCase):
 
     def mock_api_response(self, status, body):
         """ Mock the Sailthru send API. """
-        httpretty.register_uri(
-            httpretty.POST,
+        responses.add(
+            responses.POST,
             'https://api.sailthru.com/send',
             status=status,
             body=json.dumps(body),
@@ -695,9 +695,9 @@ class SendOfferAssignmentEmailTests(TestCase):
 
     def mock_ecommerce_assignmentemail_api(self, body, status=200):
         """ Mock POST requests to the ecommerce assignmentemail API endpoint. """
-        httpretty.reset()
-        httpretty.register_uri(
-            httpretty.POST, '{}/assignment-email/status/'.format(
+        responses.reset()
+        responses.add(
+            responses.POST, '{}/assignment-email/status/'.format(
                 get_configuration('ECOMMERCE_API_ROOT').strip('/')
             ),
             status=status,
@@ -734,7 +734,7 @@ class SendOfferAssignmentEmailTests(TestCase):
             ' Message: {message}'.format(message=self.EMAIL_BODY)
         )
 
-    @httpretty.activate
+    @responses.activate
     @ddt.data(
         (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS),
         (send_offer_update_email, UPDATE_TASK_KWARGS),
@@ -766,7 +766,7 @@ class SendOfferAssignmentEmailTests(TestCase):
              ' Message: {message}'.format(message=self.EMAIL_BODY)),
         )
 
-    @httpretty.activate
+    @responses.activate
     @ddt.data(
         (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS),
         (send_offer_update_email, UPDATE_TASK_KWARGS),
@@ -797,7 +797,7 @@ class SendOfferAssignmentEmailTests(TestCase):
              ' Failed Message: {message}'.format(message=self.EMAIL_BODY)),
         )
 
-    @httpretty.activate
+    @responses.activate
     @patch('ecommerce_worker.sailthru.v1.tasks._update_assignment_email_status')
     def test_message_sent(self, mock_update_assignment):
         """ Verify a message is logged after a successful API call to send the message. """
@@ -811,7 +811,7 @@ class SendOfferAssignmentEmailTests(TestCase):
         )
         self.assertEqual(mock_update_assignment.call_count, 1)
 
-    @httpretty.activate
+    @responses.activate
     @patch('ecommerce_worker.utils.get_ecommerce_client')
     def test_update_assignment_exception(self, mock_get_ecommerce_client):
         """ Verify a message is logged after an unsuccessful API call to update the status. """
@@ -830,7 +830,7 @@ class SendOfferAssignmentEmailTests(TestCase):
                  token_email=self.USER_EMAIL,))
         )
 
-    @httpretty.activate
+    @responses.activate
     @ddt.data(
         (
             # Success case

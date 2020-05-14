@@ -5,7 +5,7 @@
 coverage
 ddt
 edx-lint
-httpretty
+responses
 mock
 pytest
 pytest-cov

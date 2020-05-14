@@ -1,6 +1,6 @@
 PACKAGE = ecommerce_worker
 ROOT = $(shell echo "$$PWD")
-PYTHON_VERSION = py27
+PYTHON_ENV = py27
 
 help:
 	@echo '                                                                                             '
@@ -27,7 +27,7 @@ worker:
 	celery -A ecommerce_worker worker --app=$(PACKAGE).celery_app:app --loglevel=info --queue=fulfillment,email_marketing
 
 test: requirements_tox
-	tox -e ${PYTHON_VERSION}
+	tox -e ${PYTHON_ENV}
 
 quality: requirements_tox
 	tox -e quality
@@ -49,6 +49,9 @@ upgrade: ## update the requirements/*.txt files with the latest packages satisfy
 	pip-compile --rebuild --upgrade -o requirements/optional.txt requirements/optional.in
 	pip-compile --rebuild --upgrade -o requirements/local.txt requirements/local.in
 	pip-compile --rebuild --upgrade -o requirements/production.txt requirements/production.in
-
+	# Let tox control the Django version for tests
+	grep -e "^django==" -e "^edx-rest-api-client==" requirements/base.txt > requirements/django.txt
+	sed '/^[dD]jango==/d;/^edx-rest-api-client==/d' requirements/test.txt > requirements/test.tmp
+	mv requirements/test.tmp requirements/test.txt
 
 .PHONY: help requirements worker test html_coverage quality validate clean

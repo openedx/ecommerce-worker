@@ -18,25 +18,28 @@ click-log==0.3.2          # via edx-lint
 click==7.1.2              # via click-log, edx-lint
 configparser==4.0.2       # via importlib-metadata, pylint
 contextlib2==0.6.0.post1  # via importlib-metadata, zipp
+cookies==2.2.1            # via responses
 coverage==5.1             # via -r requirements/test.in, pytest-cov
 ddt==1.4.1                # via -r requirements/test.in
+django-waffle==0.18.0     # via -c requirements/constraints.txt, -r requirements/base.txt, edx-django-utils
+edx-django-utils==2.0.4   # via -c requirements/constraints.txt, -r requirements/base.txt, edx-rest-api-client
 edx-lint==1.4.1           # via -r requirements/test.in
-edx-rest-api-client==1.9.2  # via -c requirements/constraints.txt, -r requirements/base.txt
 enum34==1.1.10            # via astroid, ddt
 funcsigs==1.0.2           # via mock, pytest
 futures==3.3.0 ; python_version == "2.7"  # via -c requirements/constraints.txt, isort
-httpretty==0.8.10         # via -c requirements/constraints.txt, -r requirements/test.in
 idna==2.9                 # via -r requirements/base.txt, requests
 importlib-metadata==1.6.0  # via pluggy, pytest
 isort==4.3.21             # via pylint
 kombu==3.0.37             # via -r requirements/base.txt, celery
 lazy-object-proxy==1.4.3  # via astroid
 mccabe==0.6.1             # via pylint
-mock==3.0.5               # via -c requirements/constraints.txt, -r requirements/test.in
+mock==3.0.5               # via -c requirements/constraints.txt, -r requirements/test.in, responses
 more-itertools==5.0.0     # via pytest
+newrelic==5.12.1.141      # via -r requirements/base.txt, edx-django-utils
 packaging==20.4           # via pytest
 pathlib2==2.3.5           # via importlib-metadata, pytest
 pluggy==0.13.1            # via pytest
+psutil==1.2.1             # via -r requirements/base.txt, edx-django-utils
 py==1.8.1                 # via pytest
 pycodestyle==2.6.0        # via -r requirements/test.in
 pyjwt==1.7.1              # via -r requirements/base.txt, edx-rest-api-client
@@ -47,14 +50,15 @@ pylint==1.9.5             # via edx-lint, pylint-celery, pylint-django, pylint-p
 pyparsing==2.4.7          # via packaging
 pytest-cov==2.8.1         # via -r requirements/test.in
 pytest==4.6.10            # via -r requirements/test.in, pytest-cov
-pytz==2020.1              # via -r requirements/base.txt, celery
+pytz==2020.1              # via -r requirements/base.txt, celery, django
 redis==3.5.2              # via -r requirements/base.txt
-requests==2.23.0          # via -r requirements/base.txt, edx-rest-api-client, sailthru-client, slumber
+requests==2.23.0          # via -r requirements/base.txt, edx-rest-api-client, responses, sailthru-client, slumber
+responses==0.10.14        # via -r requirements/test.in
 sailthru-client==2.3.5    # via -r requirements/base.txt
 scandir==1.10.0           # via pathlib2
 simplejson==3.17.0        # via -r requirements/base.txt, sailthru-client
 singledispatch==3.4.0.3   # via astroid, pylint
-six==1.14.0               # via -r requirements/base.txt, astroid, edx-lint, mock, more-itertools, packaging, pathlib2, pylint, pytest, singledispatch
+six==1.14.0               # via -r requirements/base.txt, astroid, edx-lint, mock, more-itertools, packaging, pathlib2, pylint, pytest, responses, singledispatch
 slumber==0.7.1            # via -r requirements/base.txt, edx-rest-api-client
 testfixtures==6.14.1      # via -r requirements/test.in
 urllib3==1.25.9           # via -r requirements/base.txt, requests

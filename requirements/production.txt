@@ -10,11 +10,16 @@ billiard==3.3.0.23        # via -r requirements/base.txt, celery
 celery==3.1.26.post2      # via -c requirements/constraints.txt, -r requirements/base.txt
 certifi==2020.4.5.1       # via -r requirements/base.txt, requests
 chardet==3.0.4            # via -r requirements/base.txt, requests
-edx-rest-api-client==1.9.2  # via -c requirements/constraints.txt, -r requirements/base.txt
+django-waffle==0.18.0     # via -c requirements/constraints.txt, -r requirements/base.txt, edx-django-utils
+django==1.11.29           # via -r requirements/base.txt, edx-django-utils
+edx-django-utils==2.0.4   # via -c requirements/constraints.txt, -r requirements/base.txt, edx-rest-api-client
+edx-rest-api-client==3.0.2  # via -c requirements/constraints.txt, -r requirements/base.txt
 idna==2.9                 # via -r requirements/base.txt, requests
 kombu==3.0.37             # via -r requirements/base.txt, celery
+newrelic==5.12.1.141      # via -r requirements/base.txt, edx-django-utils
+psutil==1.2.1             # via -r requirements/base.txt, edx-django-utils
 pyjwt==1.7.1              # via -r requirements/base.txt, edx-rest-api-client
-pytz==2020.1              # via -r requirements/base.txt, celery
+pytz==2020.1              # via -r requirements/base.txt, celery, django
 pyyaml==5.3.1             # via -r requirements/production.in
 redis==3.5.2              # via -r requirements/base.txt
 requests==2.23.0          # via -r requirements/base.txt, edx-rest-api-client, sailthru-client, slumber

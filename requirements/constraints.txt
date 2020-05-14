@@ -13,10 +13,15 @@ futures; python_version == "2.7"
 
 ## Versions used before this accomplished oep-18
 celery>=3.1.18,<4.0.0
-edx-rest-api-client>=1.5.0,<2.0.0
+
+# django-waffle version 0.19.0 dropped support for Django2.0
+django-waffle<0.19.0
+
+# edx-rest-api-client version 4.0.0 dropped support to python 2.7
+edx-rest-api-client<4.0.0
+
+# version 3.0.0 dropped python 2.7 support
+edx-django-utils<3.0.0
 
 # mock version 4.0.0 dropped support for python 2.7 and 3.5
 mock<4.0.0
-
-# https://github.com/gabrielfalcao/HTTPretty/pull/202 breaks the tests
-httpretty==0.8.10

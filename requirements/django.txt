@@ -1,0 +1,2 @@
+django==1.11.29           # via edx-django-utils
+edx-rest-api-client==3.0.2  # via -c requirements/constraints.txt, -r requirements/base.in
