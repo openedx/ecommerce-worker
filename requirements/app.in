@@ -1,0 +1,7 @@
+-c constraints.txt
+
+## Dependencies for the edx-ecommerce-worker standalone app
+
+redis
+sailthru-client
+six

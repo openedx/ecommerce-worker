@@ -1,4 +1,7 @@
 """Order fulfillment tasks."""
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 from ssl import SSLError
 
 from celery import shared_task

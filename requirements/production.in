@@ -1,0 +1,5 @@
+# Packages required in a production environment
+-r base.txt
+-c constraints.txt
+
+PyYAML

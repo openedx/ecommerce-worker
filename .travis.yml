@@ -19,7 +19,6 @@ script:
 
 after_success:
     - pip install -U codecov
-    - docker exec ecomworker /edx/app/ecomworker/ecomworker/.travis/run_coverage.sh
     - codecov
 
 deploy:
