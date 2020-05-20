@@ -1,7 +1,6 @@
 """
 This file contains a primitive cache
 """
-from __future__ import absolute_import
 import threading
 import time
 
@@ -41,7 +40,7 @@ class Cache(dict):
 
             # expired key, clean out all expired keys
             deletes = []
-            for k, val in list(self.items()):
+            for k, val in self.items():
                 if val.expire <= current_time:
                     deletes.append(k)
             for k in deletes:
