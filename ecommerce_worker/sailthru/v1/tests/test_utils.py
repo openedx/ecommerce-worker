@@ -1,8 +1,5 @@
 """ Tests for utility functions. """
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from unittest import TestCase
 
 import ddt

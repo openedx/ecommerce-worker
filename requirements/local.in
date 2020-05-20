@@ -1,4 +1,0 @@
--c constraints.txt
-
-# Packages required for local development
--r test.txt

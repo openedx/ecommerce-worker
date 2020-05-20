@@ -1,6 +1,0 @@
--c constraints.txt
-
-## Dependencies for the edx-ecommerce-worker library
-
-celery
-edx-rest-api-client
