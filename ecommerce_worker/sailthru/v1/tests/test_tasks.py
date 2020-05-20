@@ -1,4 +1,6 @@
 """Tests of Sailthru worker code."""
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import logging
 import json
 from decimal import Decimal
@@ -427,13 +429,13 @@ class SailthruTests(TestCase):
         config = {'SAILTHRU_CACHE_TTL_SECONDS': 100}
         mock_sailthru_client.api_get.return_value = MockSailthruResponse({"title": "The title"})
         response_json = _get_course_content(self.course_id, 'course:123', mock_sailthru_client, None, config)
-        self.assertEquals(response_json, {"title": "The title"})
+        self.assertEqual(response_json, {"title": "The title"})
         mock_sailthru_client.api_get.assert_called_with('content', {'id': 'course:123'})
 
         # test second call uses cache
         mock_sailthru_client.reset_mock()
         response_json = _get_course_content(self.course_id, 'course:123', mock_sailthru_client, None, config)
-        self.assertEquals(response_json, {"title": "The title"})
+        self.assertEqual(response_json, {"title": "The title"})
         mock_sailthru_client.api_get.assert_not_called()
 
         # test error from Sailthru
@@ -444,7 +446,7 @@ class SailthruTests(TestCase):
             'verification_deadline': '2016-12-01T23:59:00Z'
         }
         self.mock_ecommerce_api(data, self.course_id)
-        self.assertEquals(
+        self.assertEqual(
             _get_course_content(self.course_id, 'course:124', mock_sailthru_client, None, config), expected_response
         )
 
@@ -456,14 +458,14 @@ class SailthruTests(TestCase):
         }
         mock_sailthru_client.api_get.side_effect = SailthruClientError
         self.mock_ecommerce_api(data, self.course_id)
-        self.assertEquals(
+        self.assertEqual(
             _get_course_content(self.course_id, 'course:125', mock_sailthru_client, None, config), expected_response
         )
 
         # test Sailthru and Ecommerce exception
         mock_sailthru_client.api_get.side_effect = SailthruClientError
         self.mock_ecommerce_api({}, self.course_id2, status=500)
-        self.assertEquals(
+        self.assertEqual(
             _get_course_content(self.course_id2, 'course:126', mock_sailthru_client, None, config), {}
         )
 
@@ -480,12 +482,12 @@ class SailthruTests(TestCase):
         self.mock_ecommerce_api(data, self.course_id)
 
         response_json = _get_course_content_from_ecommerce(self.course_id, None)
-        self.assertEquals(response_json, expected_response)
+        self.assertEqual(response_json, expected_response)
 
         # test error getting data
         self.mock_ecommerce_api({}, self.course_id2, status=500)
         response_json = _get_course_content_from_ecommerce(self.course_id2, None)
-        self.assertEquals(response_json, {})
+        self.assertEqual(response_json, {})
 
     @patch('ecommerce_worker.sailthru.v1.utils.SailthruClient')
     def test_update_unenrolled_list_new(self, mock_sailthru_client):

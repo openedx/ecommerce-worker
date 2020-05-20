@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 # CELERY
 # Default broker URL. See http://celery.readthedocs.org/en/latest/configuration.html#broker-url.
 BROKER_URL = 'amqp://celery:celery@127.0.0.1:5672'

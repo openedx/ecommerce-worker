@@ -1,4 +1,7 @@
 """Logging configuration"""
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 from logging.handlers import SysLogHandler
 import os
 import platform

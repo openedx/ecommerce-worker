@@ -2,16 +2,19 @@
 This file contains celery tasks for email marketing signal handler.
 """
 
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from sailthru.sailthru_error import SailthruClientError
+from requests.exceptions import RequestException
+from six import text_type
 
 from ecommerce_worker.cache import Cache
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.utils import get_sailthru_client, get_sailthru_configuration
 from ecommerce_worker.utils import get_ecommerce_client
-from requests.exceptions import RequestException
-from six import text_type
 
 logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 cache = Cache()  # pylint: disable=invalid-name

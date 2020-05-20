@@ -1,4 +1,5 @@
 """Tests of cache."""
+from __future__ import absolute_import
 import logging
 from unittest import TestCase
 
@@ -11,9 +12,6 @@ class CacheTests(TestCase):
     """
     Tests for the cache routine.
     """
-
-    def setUp(self):
-        super(CacheTests, self).setUp()
 
     def test_content_cache(self):
         """
@@ -30,12 +28,12 @@ class CacheTests(TestCase):
         cache.set('key5', 'value5', -100)
 
         # should be 5 to start
-        self.assertEquals(len(cache), 5)
+        self.assertEqual(len(cache), 5)
 
         # getting one of the expired should clean out all expired
-        self.assertEquals(cache.get('key5'), None)
+        self.assertEqual(cache.get('key5'), None)
         # make sure 2 left
-        self.assertEquals(len(cache), 2)
-        self.assertEquals(cache.get('key2'), 'value2')
-        self.assertEquals(cache.get('key1'), 'value1')
-        self.assertEquals(cache.get('key3'), None)
+        self.assertEqual(len(cache), 2)
+        self.assertEqual(cache.get('key2'), 'value2')
+        self.assertEqual(cache.get('key1'), 'value1')
+        self.assertEqual(cache.get('key3'), None)
