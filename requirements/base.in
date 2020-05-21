@@ -1,0 +1,10 @@
+-c constraints.txt
+
+# Dependencies for the edx-ecommerce-worker library
+# Max constraints are needed here to be used by setup.py install_requires.
+
+# We're not ready for Celery 4 yet, but 3.1.25+ are forward-compatible with it.
+celery>=3.1.25,<4.0.0
+
+# Using contraint already present before this acomplish oep-18
+edx-rest-api-client<2.0.0
