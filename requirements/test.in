@@ -1,0 +1,13 @@
+# Packages required for running tests
+-r base.txt
+-c constraints.txt
+
+coverage
+ddt
+edx-lint
+httpretty
+mock
+pytest
+pytest-cov
+pep8
+testfixtures
