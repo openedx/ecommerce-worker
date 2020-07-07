@@ -1,6 +1,7 @@
 # Packages required for running tests
 -r base.txt
 
+astroid==1.4.9
 coverage==4.0.3
 ddt==1.0.1
 edx-lint==0.5.2
