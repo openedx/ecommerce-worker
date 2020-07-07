@@ -8,4 +8,3 @@ services:
     volumes:
       - ..:/edx/app/ecomworker/ecomworker
     command: tail -f /dev/null
-    entrypoint: ""

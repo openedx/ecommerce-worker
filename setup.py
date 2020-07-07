@@ -4,36 +4,6 @@ from setuptools import setup, find_packages
 with open('README.rst') as readme:
     long_description = readme.read()
 
-
-def load_requirements(*requirements_paths):
-    """
-    Load all requirements from the specified requirements files.
-    Returns a list of requirement strings.
-    """
-    requirements = set()
-    for path in requirements_paths:
-        requirements.update(
-            line.split('#')[0].strip() for line in open(path).readlines()
-            if is_requirement(line.strip())
-        )
-    return list(requirements)
-
-
-def is_requirement(line):
-    """
-    Return True if the requirement line is a package requirement;
-    that is, it is not blank, a comment, a URL, or an included file.
-    """
-    return not (
-        line == '' or
-        line.startswith('-c') or
-        line.startswith('-r') or
-        line.startswith('#') or
-        line.startswith('-e') or
-        line.startswith('git+')
-    )
-
-
 setup(
     name='edx-ecommerce-worker',
     version='0.7.2',
@@ -54,5 +24,8 @@ setup(
     author_email='oscm@edx.org',
     license='AGPL',
     packages=find_packages(exclude=['*.tests']),
-    install_requires=load_requirements('requirements/base.in'),
+    install_requires=[
+        'celery>=3.1.18,<4.0.0',
+        'edx-rest-api-client>=1.5.0,<2.0.0'
+    ],
 )
