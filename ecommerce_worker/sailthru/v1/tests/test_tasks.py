@@ -16,7 +16,9 @@ from six import text_type
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.tasks import (
     update_course_enrollment, _update_unenrolled_list, _get_course_content, _get_course_content_from_ecommerce,
-    send_course_refund_email, send_offer_assignment_email, send_offer_update_email, _update_assignment_email_status
+    send_course_refund_email, send_offer_assignment_email, send_offer_update_email, send_offer_usage_email,
+    _update_assignment_email_status,
+
 )
 from ecommerce_worker.utils import get_configuration
 
@@ -653,8 +655,24 @@ class SendCourseRefundEmailTests(TestCase):
         )
 
 
+class BaseSendEmailTests(TestCase):
+    """
+    Base class for testing the sending notification through sailthru client.
+    """
+
+    def mock_api_response(self, status, body):
+        """ Mock the Sailthru send API. """
+        httpretty.register_uri(
+            httpretty.POST,
+            'https://api.sailthru.com/send',
+            status=status,
+            body=json.dumps(body),
+            content_type='application/json'
+        )
+
+
 @ddt.ddt
-class SendOfferAssignmentEmailTests(TestCase):
+class SendOfferAssignmentEmailTests(BaseSendEmailTests):
     """ Validates the send_offer_assignment_email task. """
     LOG_NAME = 'ecommerce_worker.sailthru.v1.tasks'
     USER_EMAIL = 'user@unknown.com'
@@ -680,16 +698,6 @@ class SendOfferAssignmentEmailTests(TestCase):
     def execute_task(self):
         """ Execute the send_offer_assignment_email task. """
         send_offer_assignment_email(**self.ASSIGNMENT_TASK_KWARGS)
-
-    def mock_api_response(self, status, body):
-        """ Mock the Sailthru send API. """
-        httpretty.register_uri(
-            httpretty.POST,
-            'https://api.sailthru.com/send',
-            status=status,
-            body=json.dumps(body),
-            content_type='application/json'
-        )
 
     def mock_ecommerce_assignmentemail_api(self, body, status=200):
         """ Mock POST requests to the ecommerce assignmentemail API endpoint. """
@@ -861,3 +869,90 @@ class SendOfferAssignmentEmailTests(TestCase):
             '555',
             '1234ABC',
             'success'), return_value)
+
+
+class SendOfferUsageEmailTests(BaseSendEmailTests):
+    """ Validates the send_offer_assignment_email task. """
+    LOG_NAME = 'ecommerce_worker.sailthru.v1.notification'
+    EMAILS = 'user@unknown.com, user1@example.com'
+    SUBJECT = 'New edX course assignment'
+    EMAIL_BODY = 'Template message with johndoe@unknown.com GIL7RUEOU7VHBH7Q ' \
+                 'http://tempurl.url/enroll 3 2012-04-23'
+    USAGE_TASK_KWARGS = {
+        'emails': EMAILS,
+        'subject': SUBJECT,
+        'email_body': EMAIL_BODY,
+    }
+
+    @patch('ecommerce_worker.sailthru.v1.notification.get_sailthru_client', Mock(side_effect=SailthruError))
+    def test_client_instantiation_error(self):
+        """ Verify no message is sent if an error occurs while instantiating the Sailthru API client. """
+        with LogCapture(level=logging.INFO) as log:
+            send_offer_usage_email(**self.USAGE_TASK_KWARGS)
+        log.check(
+            (self.LOG_NAME, 'ERROR', '[Offer Usage] A client error occurred while attempting to send'
+                                     ' a notification. Message: {message}'.format(message=self.EMAIL_BODY)),
+        )
+
+    @patch('ecommerce_worker.sailthru.v1.notification.log.exception')
+    def test_api_client_error(self, mock_log):
+        """ Verify API client errors are logged. """
+        with patch.object(SailthruClient, 'multi_send', side_effect=SailthruClientError):
+            send_offer_usage_email(**self.USAGE_TASK_KWARGS)
+        mock_log.assert_called_once_with(
+            '[Offer Usage] A client error occurred while attempting to send a notification.'
+            ' Message: {message}'.format(message=self.EMAIL_BODY)
+        )
+
+    @httpretty.activate
+    def test_api_error_with_retry(self):
+        """ Verify the task is rescheduled if an API error occurs, and the request can be retried. """
+        error_code = 43
+        error_msg = 'This is a fake error.'
+        body = {
+            'error': error_code,
+            'errormsg': error_msg
+        }
+        self.mock_api_response(429, body)
+        with LogCapture(level=logging.INFO) as log:
+            with self.assertRaises(Retry):
+                send_offer_usage_email(**self.USAGE_TASK_KWARGS)
+        log.check(
+            (self.LOG_NAME, 'ERROR',
+             '[Offer Usage] A {token_error_code} - {token_error_message} error occurred'
+             ' while attempting to send a notification.'
+             ' Message: {message}'.format(
+                 message=self.EMAIL_BODY,
+                 token_error_code=error_code,
+                 token_error_message=error_msg
+             )),
+            (self.LOG_NAME, 'INFO',
+             '[Offer Usage] An attempt will be made to resend the notification.'
+             ' Message: {message}'.format(message=self.EMAIL_BODY)),
+        )
+
+    @httpretty.activate
+    def test_api_error_without_retry(self):
+        """ Verify error details are logged if an API error occurs, and the request can NOT be retried. """
+        error_code = 1
+        error_msg = 'This is a fake error.'
+        body = {
+            'error': error_code,
+            'errormsg': error_msg
+        }
+        self.mock_api_response(429, body)
+        with LogCapture(level=logging.INFO) as log:
+            send_offer_usage_email(**self.USAGE_TASK_KWARGS)
+        log.check(
+            (self.LOG_NAME, 'ERROR',
+             '[Offer Usage] A {token_error_code} - {token_error_message} error occurred'
+             ' while attempting to send a notification.'
+             ' Message: {message}'.format(
+                 message=self.EMAIL_BODY,
+                 token_error_code=error_code,
+                 token_error_message=error_msg
+             )),
+            (self.LOG_NAME, 'WARNING',
+             '[Offer Usage] No further attempts will be made to send the notification.'
+             ' Failed Message: {message}'.format(message=self.EMAIL_BODY)),
+        )
