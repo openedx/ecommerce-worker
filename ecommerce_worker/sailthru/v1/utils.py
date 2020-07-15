@@ -48,3 +48,23 @@ def get_sailthru_client(site_code):
         raise ConfigurationError(msg)
 
     return SailthruClient(key, secret)
+
+
+def can_retry_sailthru_request(error):
+    """ Returns True if a Sailthru request and be re-submitted after an error has occurred.
+
+    Responses with the following codes can be retried:
+         9: Internal Error
+        43: Too many [type] requests this minute to /[endpoint] API
+
+    All other errors are considered failures, that should not be retried. A complete list of error codes is available at
+    https://getstarted.sailthru.com/new-for-developers-overview/api/api-response-errors/.
+
+    Args:
+        error (SailthruResponseError)
+
+    Returns:
+        bool: Indicates if the original request can be retried.
+    """
+    code = error.get_error_code()
+    return code in (9, 43)

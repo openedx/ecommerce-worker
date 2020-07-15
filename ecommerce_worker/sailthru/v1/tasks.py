@@ -8,7 +8,12 @@ from sailthru.sailthru_error import SailthruClientError
 
 from ecommerce_worker.cache import Cache
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
-from ecommerce_worker.sailthru.v1.utils import get_sailthru_client, get_sailthru_configuration
+from ecommerce_worker.sailthru.v1.notification import Notification
+from ecommerce_worker.sailthru.v1.utils import (
+    can_retry_sailthru_request,
+    get_sailthru_client,
+    get_sailthru_configuration
+)
 from ecommerce_worker.utils import get_ecommerce_client
 from requests.exceptions import RequestException
 from six import text_type
@@ -210,26 +215,6 @@ def _update_unenrolled_list(sailthru_client, email, course_url, unenroll):
         return False
 
 
-def can_retry_sailthru_request(error):
-    """ Returns True if a Sailthru request and be re-submitted after an error has occurred.
-
-    Responses with the following codes can be retried:
-         9: Internal Error
-        43: Too many [type] requests this minute to /[endpoint] API
-
-    All other errors are considered failures, that should not be retried. A complete list of error codes is available at
-    https://getstarted.sailthru.com/new-for-developers-overview/api/api-response-errors/.
-
-    Args:
-        error (SailthruResponseError)
-
-    Returns:
-        bool: Indicates if the original request can be retried.
-    """
-    code = error.get_error_code()
-    return code in (9, 43)
-
-
 @shared_task(bind=True, ignore_result=True)
 def update_course_enrollment(self, email, course_url, purchase_incomplete, mode, unit_cost=None, course_id=None,
                              currency=None, message_id=None, site_code=None, sku=None):
@@ -380,6 +365,7 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
     """
+    # TODO: Notification class should be used for sending the notification.
     config = get_sailthru_configuration(site_code)
     response = _send_offer_assignment_notification_email(config, user_email, subject, email_body, site_code, self)
     if response and response.is_ok():
@@ -491,5 +477,34 @@ def send_offer_update_email(self, user_email, subject, email_body, site_code=Non
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
     """
+    # TODO: Notification class should be used for sending the notification.
     config = get_sailthru_configuration(site_code)
     _send_offer_assignment_notification_email(config, user_email, subject, email_body, site_code, self)
+
+
+@shared_task(bind=True, ignore_result=True)
+def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
+    """ Sends the offer usage email.
+    Args:
+        self: Ignore.
+        emails (str): comma separated emails.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+    """
+    config = get_sailthru_configuration(site_code)
+
+    _, is_eligible_for_retry = Notification(
+        config=config,
+        emails=emails,
+        email_vars={
+            'subject': subject,
+            'email_body': email_body,
+        },
+        logger_prefix="Offer Usage",
+        site_code=site_code,
+        template='usage_email'
+    ).send(is_multi_send=True)
+
+    if is_eligible_for_retry:
+        schedule_retry(self, config)
