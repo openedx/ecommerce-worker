@@ -503,7 +503,7 @@ def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
         },
         logger_prefix="Offer Usage",
         site_code=site_code,
-        template='usage_email'
+        template='assignment_email'
     ).send(is_multi_send=True)
 
     if is_eligible_for_retry:

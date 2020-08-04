@@ -919,9 +919,8 @@ class SendOfferUsageEmailTests(BaseSendEmailTests):
                 send_offer_usage_email(**self.USAGE_TASK_KWARGS)
         log.check(
             (self.LOG_NAME, 'ERROR',
-             '[Offer Usage] A {token_error_code} - {token_error_message} error occurred'
-             ' while attempting to send a notification.'
-             ' Message: {message}'.format(
+             '[Offer Usage] An error occurred while attempting to send a notification. Message: {message},'
+             ' Error code: {token_error_code}, Error Message: {token_error_message} '.format(
                  message=self.EMAIL_BODY,
                  token_error_code=error_code,
                  token_error_message=error_msg
@@ -945,9 +944,8 @@ class SendOfferUsageEmailTests(BaseSendEmailTests):
             send_offer_usage_email(**self.USAGE_TASK_KWARGS)
         log.check(
             (self.LOG_NAME, 'ERROR',
-             '[Offer Usage] A {token_error_code} - {token_error_message} error occurred'
-             ' while attempting to send a notification.'
-             ' Message: {message}'.format(
+             '[Offer Usage] An error occurred while attempting to send a notification. Message: {message},'
+             ' Error code: {token_error_code}, Error Message: {token_error_message} '.format(
                  message=self.EMAIL_BODY,
                  token_error_code=error_code,
                  token_error_message=error_msg
