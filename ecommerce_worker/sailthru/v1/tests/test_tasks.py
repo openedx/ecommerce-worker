@@ -890,8 +890,14 @@ class SendOfferUsageEmailTests(BaseSendEmailTests):
         with LogCapture(level=logging.INFO) as log:
             send_offer_usage_email(**self.USAGE_TASK_KWARGS)
         log.check(
-            (self.LOG_NAME, 'ERROR', '[Offer Usage] A client error occurred while attempting to send'
-                                     ' a notification. Message: {message}'.format(message=self.EMAIL_BODY)),
+            (
+                self.LOG_NAME,
+                'ERROR',
+                '[Offer Usage] A client error occurred while attempting to send a notification. '
+                'Message: {message}'.format(
+                    message=self.EMAIL_BODY
+                )
+            ),
         )
 
     @patch('ecommerce_worker.sailthru.v1.notification.log.exception')
@@ -918,17 +924,23 @@ class SendOfferUsageEmailTests(BaseSendEmailTests):
             with self.assertRaises(Retry):
                 send_offer_usage_email(**self.USAGE_TASK_KWARGS)
         log.check(
-            (self.LOG_NAME, 'ERROR',
-             '[Offer Usage] A {token_error_code} - {token_error_message} error occurred'
-             ' while attempting to send a notification.'
-             ' Message: {message}'.format(
-                 message=self.EMAIL_BODY,
-                 token_error_code=error_code,
-                 token_error_message=error_msg
-             )),
-            (self.LOG_NAME, 'INFO',
-             '[Offer Usage] An attempt will be made to resend the notification.'
-             ' Message: {message}'.format(message=self.EMAIL_BODY)),
+            (
+                self.LOG_NAME,
+                'ERROR',
+                '[Offer Usage] An error occurred while attempting to send a notification. Message: {message},'
+                ' Error code: {token_error_code}, Error Message: {token_error_message}.'.format(
+                    message=self.EMAIL_BODY,
+                    token_error_code=error_code,
+                    token_error_message=error_msg
+                )
+            ),
+            (
+                self.LOG_NAME,
+                'INFO',
+                '[Offer Usage] An attempt will be made to resend the notification. Message: {message}'.format(
+                    message=self.EMAIL_BODY
+                )
+            ),
         )
 
     @httpretty.activate
@@ -944,15 +956,43 @@ class SendOfferUsageEmailTests(BaseSendEmailTests):
         with LogCapture(level=logging.INFO) as log:
             send_offer_usage_email(**self.USAGE_TASK_KWARGS)
         log.check(
-            (self.LOG_NAME, 'ERROR',
-             '[Offer Usage] A {token_error_code} - {token_error_message} error occurred'
-             ' while attempting to send a notification.'
-             ' Message: {message}'.format(
-                 message=self.EMAIL_BODY,
-                 token_error_code=error_code,
-                 token_error_message=error_msg
-             )),
-            (self.LOG_NAME, 'WARNING',
-             '[Offer Usage] No further attempts will be made to send the notification.'
-             ' Failed Message: {message}'.format(message=self.EMAIL_BODY)),
+            (
+                self.LOG_NAME,
+                'ERROR',
+                '[Offer Usage] An error occurred while attempting to send a notification. Message: {message},'
+                ' Error code: {token_error_code}, Error Message: {token_error_message}.'.format(
+                    message=self.EMAIL_BODY,
+                    token_error_code=error_code,
+                    token_error_message=error_msg
+                )
+            ),
+            (
+                self.LOG_NAME,
+                'WARNING',
+                '[Offer Usage] No further attempts will be made to send the notification.'
+                ' Failed Message: {message}'.format(
+                    message=self.EMAIL_BODY
+                )
+            ),
+        )
+
+    @httpretty.activate
+    def test_api(self):
+        """
+        Test the happy path.
+        """
+        body = {
+            'dummy-key': 'dummy-value'
+        }
+        self.mock_api_response(200, body)
+        with LogCapture(level=logging.INFO) as log:
+            send_offer_usage_email(**self.USAGE_TASK_KWARGS)
+        log.check(
+            (
+                self.LOG_NAME,
+                'INFO',
+                '[Offer Usage] A notification has been sent successfully. Message: {message}'.format(
+                    message=self.EMAIL_BODY
+                )
+            )
         )

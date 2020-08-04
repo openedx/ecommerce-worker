@@ -31,8 +31,8 @@ class Notification(object):
         is_eligible_for_retry = False
         error = response.get_error()
         log.error(
-            '[{logger_prefix}] A {token_error_code} - {token_error_message} error occurred while attempting to send a '
-            'notification. Message: {message}'.format(
+            '[{logger_prefix}] An error occurred while attempting to send a notification. Message: {message},'
+            ' Error code: {token_error_code}, Error Message: {token_error_message}.'.format(
                 logger_prefix=self.logger_prefix,
                 message=self.email_vars.get('email_body'),
                 token_error_code=error.get_error_code(),
@@ -126,6 +126,13 @@ class Notification(object):
             )
             return None, is_eligible_for_retry
 
-        if not response.is_ok():
+        if response.is_ok():
+            log.info(
+                '[{logger_prefix}] A notification has been sent successfully. Message: {message}'.format(
+                    logger_prefix=self.logger_prefix,
+                    message=self.email_vars.get('email_body')
+                )
+            )
+        else:
             is_eligible_for_retry = self._is_eligible_for_retry(response)
         return response, is_eligible_for_retry

@@ -484,7 +484,9 @@ def send_offer_update_email(self, user_email, subject, email_body, site_code=Non
 
 @shared_task(bind=True, ignore_result=True)
 def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
-    """ Sends the offer usage email.
+    """
+    Sends the offer usage email.
+
     Args:
         self: Ignore.
         emails (str): comma separated emails.
@@ -493,18 +495,17 @@ def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
         site_code (str): Identifier of the site sending the email.
     """
     config = get_sailthru_configuration(site_code)
-
-    _, is_eligible_for_retry = Notification(
+    notification = Notification(
         config=config,
         emails=emails,
         email_vars={
             'subject': subject,
-            'email_body': email_body,
+            'email_body': email_body
         },
         logger_prefix="Offer Usage",
         site_code=site_code,
-        template='usage_email'
-    ).send(is_multi_send=True)
-
+        template='assignment_email'
+    )
+    _, is_eligible_for_retry = notification.send(is_multi_send=True)
     if is_eligible_for_retry:
         schedule_retry(self, config)
