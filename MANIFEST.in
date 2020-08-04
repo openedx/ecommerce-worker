@@ -1,0 +1,6 @@
+include LICENSE.txt
+include README.rst
+recursive-include ecommerce_worker *.html *.png *js *.css *jpg *jpeg *svg *py *.txt *.json
+include requirements/base.in
+recursive-include requirements *.txt
+

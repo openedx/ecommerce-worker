@@ -1,4 +1,5 @@
 PACKAGE = ecommerce_worker
+PYTHON_VERSION = py27
 
 help:
 	@echo '                                                                                             '
@@ -18,20 +19,17 @@ help:
 requirements:
 	pip install -r requirements/local.txt
 
+requirements_tox:
+	pip install -r requirements/tox.txt
+
 worker:
 	celery -A ecommerce_worker worker --app=$(PACKAGE).celery_app:app --loglevel=info --queue=fulfillment,email_marketing
 
-test:
-	WORKER_CONFIGURATION_MODULE=ecommerce_worker.configuration.test nosetests \
-	--with-ignore-docstrings --logging-level=DEBUG --logging-clear-handlers \
-	--with-coverage --cover-branches --cover-html --cover-package=$(PACKAGE) $(PACKAGE)
+test: requirements_tox
+	tox -e ${PYTHON_VERSION}
 
-html_coverage:
-	coverage html && open htmlcov/index.html
-
-quality:
-	pep8 --config=.pep8 $(PACKAGE)
-	pylint --rcfile=pylintrc $(PACKAGE)
+quality: requirements_tox
+	tox -e quality
 
 validate: clean test quality
 
