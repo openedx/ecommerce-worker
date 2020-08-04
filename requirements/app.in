@@ -1,0 +1,10 @@
+# NOTE (CCB): These requirements are duplicated from setup.py because
+# this package can serve as both a library and a standalone application.
+
+-c constraints.txt
+
+celery==3.1.18
+redis==2.10.6
+edx-rest-api-client==1.5.0
+sailthru-client==2.2.3
+six==1.15.0

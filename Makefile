@@ -38,4 +38,15 @@ clean:
 	coverage erase
 	rm -rf cover htmlcov
 
+upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
+upgrade: ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
+	pip install -r requirements/pip-tools.txt
+	pip-compile --rebuild --upgrade -o requirements/pip-tools.txt requirements/pip-tools.in
+	pip-compile --rebuild --upgrade -o requirements/base.txt requirements/base.in requirements/app.in
+	pip-compile --rebuild --upgrade -o requirements/tox.txt requirements/tox.in
+	pip-compile --rebuild --upgrade -o requirements/test.txt requirements/test.in
+	pip-compile --rebuild --upgrade -o requirements/optional.txt requirements/optional.in
+	pip-compile --rebuild --upgrade -o requirements/local.txt requirements/local.in
+	pip-compile --rebuild --upgrade -o requirements/production.txt requirements/production.in
+
 .PHONY: help requirements worker test html_coverage quality validate clean
