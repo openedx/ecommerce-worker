@@ -127,6 +127,5 @@ class Notification(object):
             return None, is_eligible_for_retry
 
         if not response.is_ok():
-            a = 1
             is_eligible_for_retry = self._is_eligible_for_retry(response)
         return response, is_eligible_for_retry
