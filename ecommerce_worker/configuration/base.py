@@ -96,6 +96,5 @@ SAILTHRU = {
     'templates': {
         'course_refund': 'Course Refund',
         'assignment_email': 'Offer Assignment Email',
-        'usage_email': 'Offer Usage Email',
     }
 }
