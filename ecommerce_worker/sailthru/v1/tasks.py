@@ -2,6 +2,8 @@
 This file contains celery tasks for email marketing signal handler.
 """
 
+from decimal import Decimal
+
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from sailthru.sailthru_error import SailthruClientError
@@ -234,6 +236,9 @@ def update_course_enrollment(self, email, course_url, purchase_incomplete, mode,
     Returns:
         None
     """
+    # Celery converts decimals to strings, so convert back
+    unit_cost = Decimal(unit_cost)
+
     # Get configuration
     config = get_sailthru_configuration(site_code)
 
