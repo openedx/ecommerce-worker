@@ -1,0 +1,39 @@
+# Version constraints for pip-installation.
+#
+# This file doesn't install any packages. It specifies version constraints
+# that will be applied if a package is needed.
+#
+# When pinning something here, please provide an explanation of why.  Ideally,
+# link to other information that will help people in the future to remove the
+# pin when possible.  Writing an issue against the offending project and
+# linking to it here is good.
+
+# These were previously pinned in ecommerce-worker, and will stay that way
+# until we go through the process of relaxing them gradually.
+astroid==1.4.9
+coverage==4.4.0
+ddt==1.0.1
+edx-lint==0.5.2
+isort==4.3.21
+mock==1.3.0
+newrelic==4.8.0.110
+pep8==1.7.0
+pylint-django==0.7.2
+pylint-plugin-utils==0.2.1
+pylint==1.6.4
+pytest-cov==2.10.0
+pytest==4.6.11
+PyYAML==3.11
+redis==2.10.6
+sailthru-client==2.2.3
+testfixtures==4.13.3
+tox==3.15.2
+more-itertools==5.0.0
+edx-rest-api-client==1.5.0
+six==1.15.0
+tox==3.15.2
+
+# Pinned to support both py27 and py38
+httpretty==0.8.10
+celery==3.1.18
+tox-battery < 0.6

@@ -1,0 +1,17 @@
+# Packages required for running tests
+-c constraints.txt
+-r base.txt
+
+astroid
+coverage
+ddt
+edx-lint
+httpretty
+mock
+pep8
+pylint
+pylint-django
+pylint-plugin-utils
+pytest
+pytest-cov
+testfixtures
