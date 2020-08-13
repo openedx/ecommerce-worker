@@ -35,5 +35,5 @@ tox==3.15.2
 
 # Pinned to support both py27 and py38
 httpretty==0.8.10
-celery==3.1.18
 tox-battery < 0.6
+celery < 4.0
