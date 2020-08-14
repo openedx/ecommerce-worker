@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 # CELERY
-BROKER_URL = 'amqp://'
+broker_url = 'amqp://'
 # END CELERY
 
 
