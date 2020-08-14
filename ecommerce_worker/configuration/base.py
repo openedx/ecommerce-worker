@@ -1,37 +1,37 @@
 # CELERY
 # Default broker URL. See http://celery.readthedocs.org/en/latest/configuration.html#broker-url.
-BROKER_URL = 'amqp://celery:celery@127.0.0.1:5672'
+broker_url = 'amqp://celery:celery@127.0.0.1:5672'
 
 # Disable connection pooling. Connections may be severed by load balancers.
 # This forces the application to connect explicitly to the broker each time
 # rather than assume a long-lived connection.
-BROKER_POOL_LIMIT = 0
-BROKER_CONNECTION_TIMEOUT = 1
+broker_pool_limit = 0
+broker_connection_timeout = 1
 
 # Use heartbeats to prevent broker connection loss. When the broker
 # is behind a load balancer, the load balancer may timeout Celery's
 # connection to the broker, causing messages to be lost.
-BROKER_HEARTBEAT = 10.0
-BROKER_HEARTBEAT_CHECKRATE = 2
+broker_heartbeat = 10.0
+broker_heartbeat_checkrate = 2
 
 # Backend used to store task results.
 # See http://celery.readthedocs.org/en/latest/configuration.html#celery-result-backend.
-CELERY_RESULT_BACKEND = None
+result_backend = None
 
 # A sequence of modules to import when the worker starts.
 # See http://celery.readthedocs.org/en/latest/configuration.html#celery-imports.
-CELERY_IMPORTS = (
+imports = (
     'ecommerce_worker.fulfillment.v1.tasks',
     'ecommerce_worker.sailthru.v1.tasks',
 )
 
 DEFAULT_PRIORITY_QUEUE = 'ecommerce.default'
-CELERY_DEFAULT_EXCHANGE = 'ecommerce'
-CELERY_DEFAULT_ROUTING_KEY = 'ecommerce'
-CELERY_DEFAULT_QUEUE = DEFAULT_PRIORITY_QUEUE
+task_default_exchange = 'ecommerce'
+task_default_routing_key = 'ecommerce'
+task_default_queue = DEFAULT_PRIORITY_QUEUE
 # Prevent Celery from removing handlers on the root logger. Allows setting custom logging handlers.
 # See http://celery.readthedocs.org/en/latest/configuration.html#celeryd-hijack-root-logger.
-CELERYD_HIJACK_ROOT_LOGGER = False
+worker_hijack_root_logger = False
 # END CELERY
 
 

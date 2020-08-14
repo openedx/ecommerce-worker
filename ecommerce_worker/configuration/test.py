@@ -5,7 +5,7 @@ from ecommerce_worker.configuration.logger import get_logger_config
 
 
 # CELERY
-CELERY_ALWAYS_EAGER = True
+task_always_eager = True
 # END CELERY
 
 
