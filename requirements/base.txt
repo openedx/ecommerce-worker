@@ -14,7 +14,7 @@ idna==2.10                # via requests
 kombu==4.6.11             # via celery
 pyjwt==1.7.1              # via edx-rest-api-client
 pytz==2020.1              # via celery
-redis==2.10.6             # via -c requirements/constraints.txt, -r requirements/base.in
+redis==3.5.3              # via -r requirements/base.in
 requests==2.24.0          # via sailthru-client, slumber
 sailthru-client==2.2.3    # via -c requirements/constraints.txt, -r requirements/base.in
 simplejson==3.17.2        # via sailthru-client
