@@ -38,7 +38,7 @@ pyparsing==2.4.7          # via packaging
 pytest-cov==2.10.0        # via -c requirements/constraints.txt, -r requirements/test.in
 pytest==4.6.11            # via -c requirements/constraints.txt, -r requirements/test.in, pytest-cov
 pytz==2020.1              # via -r requirements/base.txt, celery
-redis==2.10.6             # via -c requirements/constraints.txt, -r requirements/base.txt
+redis==3.5.3              # via -r requirements/base.txt
 requests==2.24.0          # via -r requirements/base.txt, sailthru-client, slumber
 sailthru-client==2.2.3    # via -c requirements/constraints.txt, -r requirements/base.txt
 simplejson==3.17.2        # via -r requirements/base.txt, sailthru-client

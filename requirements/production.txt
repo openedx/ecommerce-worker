@@ -15,7 +15,7 @@ kombu==4.6.11             # via -r requirements/base.txt, celery
 pyjwt==1.7.1              # via -r requirements/base.txt, edx-rest-api-client
 pytz==2020.1              # via -r requirements/base.txt, celery
 pyyaml==3.11              # via -c requirements/constraints.txt, -r requirements/production.in
-redis==2.10.6             # via -c requirements/constraints.txt, -r requirements/base.txt
+redis==3.5.3              # via -r requirements/base.txt
 requests==2.24.0          # via -r requirements/base.txt, sailthru-client, slumber
 sailthru-client==2.2.3    # via -c requirements/constraints.txt, -r requirements/base.txt
 simplejson==3.17.2        # via -r requirements/base.txt, sailthru-client
