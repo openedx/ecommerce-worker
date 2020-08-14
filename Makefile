@@ -17,7 +17,7 @@ help:
 	@echo '                                                                                             '
 
 requirements:
-	pip install -r requirements/local.txt
+	pip install -r requirements/test.txt
 
 requirements_tox:
 	pip install -r requirements/tox.txt
@@ -45,7 +45,6 @@ upgrade: ## update the requirements/*.txt files with the latest packages satisfy
 	pip-compile --upgrade -o requirements/tox.txt requirements/tox.in
 	pip-compile --upgrade -o requirements/base.txt requirements/base.in
 	pip-compile --upgrade -o requirements/test.txt requirements/test.in
-	pip-compile --upgrade -o requirements/local.txt requirements/local.in
 	pip-compile --upgrade -o requirements/optional.txt requirements/optional.in
 	pip-compile --upgrade -o requirements/production.txt requirements/production.in
 	# Let tox control the Django version for tests
