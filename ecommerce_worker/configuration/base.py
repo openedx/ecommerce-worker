@@ -32,6 +32,12 @@ task_default_queue = DEFAULT_PRIORITY_QUEUE
 # Prevent Celery from removing handlers on the root logger. Allows setting custom logging handlers.
 # See http://celery.readthedocs.org/en/latest/configuration.html#celeryd-hijack-root-logger.
 worker_hijack_root_logger = False
+
+# Specify allowed serializers that are consistent with Celery 3 defaults
+task_serializer = 'pickle'
+result_serializer = 'pickle'
+event_serializer = 'json'
+accept_content = ['json', 'pickle', 'yaml']
 # END CELERY
 
 
