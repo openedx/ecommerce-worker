@@ -1,43 +1,43 @@
 # CELERY
 # Default broker URL. See http://celery.readthedocs.org/en/latest/configuration.html#broker-url.
-broker_url = 'amqp://celery:celery@127.0.0.1:5672'
+BROKER_URL = 'amqp://celery:celery@127.0.0.1:5672'
 
 # Disable connection pooling. Connections may be severed by load balancers.
 # This forces the application to connect explicitly to the broker each time
 # rather than assume a long-lived connection.
-broker_pool_limit = 0
-broker_connection_timeout = 1
+BROKER_POOL_LIMIT = 0
+BROKER_CONNECTION_TIMEOUT = 1
 
 # Use heartbeats to prevent broker connection loss. When the broker
 # is behind a load balancer, the load balancer may timeout Celery's
 # connection to the broker, causing messages to be lost.
-broker_heartbeat = 10.0
-broker_heartbeat_checkrate = 2
+BROKER_HEARTBEAT = 10.0
+BROKER_HEARTBEAT_CHECKRATE = 2
 
 # Backend used to store task results.
 # See http://celery.readthedocs.org/en/latest/configuration.html#celery-result-backend.
-result_backend = None
+CELERY_RESULT_BACKEND = None
 
 # A sequence of modules to import when the worker starts.
 # See http://celery.readthedocs.org/en/latest/configuration.html#celery-imports.
-imports = (
+CELERY_IMPORTS = (
     'ecommerce_worker.fulfillment.v1.tasks',
     'ecommerce_worker.sailthru.v1.tasks',
 )
 
 DEFAULT_PRIORITY_QUEUE = 'ecommerce.default'
-task_default_exchange = 'ecommerce'
-task_default_routing_key = 'ecommerce'
-task_default_queue = DEFAULT_PRIORITY_QUEUE
+CELERY_DEFAULT_EXCHANGE = 'ecommerce'
+CELERY_DEFAULT_ROUTING_KEY = 'ecommerce'
+CELERY_DEFAULT_QUEUE = DEFAULT_PRIORITY_QUEUE
 # Prevent Celery from removing handlers on the root logger. Allows setting custom logging handlers.
 # See http://celery.readthedocs.org/en/latest/configuration.html#celeryd-hijack-root-logger.
-worker_hijack_root_logger = False
+CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Specify allowed serializers that are consistent with Celery 3 defaults
-task_serializer = 'pickle'
-result_serializer = 'pickle'
-event_serializer = 'json'
-accept_content = ['json', 'pickle', 'yaml']
+CELERY_TASK_SERIALIZER = 'pickle'
+CELERY_RESULT_SERIALIZER = 'pickle'
+CELERY_EVENT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json', 'pickle', 'yaml']
 # END CELERY
 
 
