@@ -404,7 +404,7 @@ def _send_offer_assignment_notification_email(config, user_email, subject, email
     }
     try:
         response = sailthru_client.send(
-            template=config['templates']['assignment_email'],
+            template=config['templates']['enterprise_portal_email'],
             email=user_email,
             _vars=email_vars
         )
