@@ -361,7 +361,9 @@ def send_course_refund_email(self, email, refund_id, amount, course_name, order_
 
 @shared_task(bind=True, ignore_result=True)
 def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body, site_code=None):
-    """ Sends the offer assignment email.
+    """
+    Sends the offer assignment email.
+
     Args:
         self: Ignore.
         user_email (str): Recipient's email address.
@@ -370,9 +372,22 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
     """
-    # TODO: Notification class should be used for sending the notification.
     config = get_sailthru_configuration(site_code)
-    response = _send_offer_assignment_notification_email(config, user_email, subject, email_body, site_code, self)
+    notification = Notification(
+        config=config,
+        emails=user_email,
+        email_vars={
+            'subject': subject,
+            'email_body': email_body
+        },
+        logger_prefix="Offer Assignment",
+        site_code=site_code,
+        template='assignment_email'
+    )
+    response, is_eligible_for_retry = notification.send()
+    if is_eligible_for_retry:
+        schedule_retry(self, config)
+
     if response and response.is_ok():
         send_id = response.get_body().get('send_id')  # pylint: disable=no-member
         if _update_assignment_email_status(offer_assignment_id, send_id, 'success'):
@@ -386,59 +401,6 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
                     token_email=user_email,
                 )
             )
-
-
-def _send_offer_assignment_notification_email(config, user_email, subject, email_body, site_code, task):
-    """Handles sending offer assignment notification emails and retrying failed emails when appropriate."""
-    try:
-        sailthru_client = get_sailthru_client(site_code)
-    except SailthruError:
-        logger.exception(
-            '[Offer Assignment] A client error occurred while attempting to send a offer assignment notification.'
-            ' Message: {message}'.format(message=email_body)
-        )
-        return None
-    email_vars = {
-        'subject': subject,
-        'email_body': email_body,
-    }
-    try:
-        response = sailthru_client.send(
-            template=config['templates']['enterprise_portal_email'],
-            email=user_email,
-            _vars=email_vars
-        )
-    except SailthruClientError:
-        logger.exception(
-            '[Offer Assignment] A client error occurred while attempting to send a offer assignment notification.'
-            ' Message: {message}'.format(message=email_body)
-        )
-        return None
-
-    if not response.is_ok():
-        error = response.get_error()
-        logger.error(
-            '[Offer Assignment] A {token_error_code} - {token_error_message} error occurred'
-            ' while attempting to send a offer assignment notification.'
-            ' Message: {message}'.format(
-                message=email_body,
-                token_error_code=error.get_error_code(),
-                token_error_message=error.get_message()
-            )
-        )
-        if can_retry_sailthru_request(error):
-            logger.info(
-                '[Offer Assignment] An attempt will be made to resend the offer assignment notification.'
-                ' Message: {message}'.format(message=email_body)
-            )
-            schedule_retry(task, config)
-        else:
-            logger.warning(
-                '[Offer Assignment] No further attempts will be made to send the offer assignment notification.'
-                ' Failed Message: {message}'.format(message=email_body)
-            )
-
-    return response
 
 
 def _update_assignment_email_status(offer_assignment_id, send_id, status, site_code=None):
@@ -474,7 +436,9 @@ def _update_assignment_email_status(offer_assignment_id, send_id, status, site_c
 
 @shared_task(bind=True, ignore_result=True)
 def send_offer_update_email(self, user_email, subject, email_body, site_code=None):
-    """ Sends the offer emails after assignment, either for revoking or reminding.
+    """
+    Sends the offer emails after assignment, either for revoking or reminding.
+
     Args:
         self: Ignore.
         user_email (str): Recipient's email address.
@@ -482,9 +446,21 @@ def send_offer_update_email(self, user_email, subject, email_body, site_code=Non
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
     """
-    # TODO: Notification class should be used for sending the notification.
     config = get_sailthru_configuration(site_code)
-    _send_offer_assignment_notification_email(config, user_email, subject, email_body, site_code, self)
+    notification = Notification(
+        config=config,
+        emails=user_email,
+        email_vars={
+            'subject': subject,
+            'email_body': email_body
+        },
+        logger_prefix="Offer Assignment",
+        site_code=site_code,
+        template='assignment_email'
+    )
+    _, is_eligible_for_retry = notification.send()
+    if is_eligible_for_retry:
+        schedule_retry(self, config)
 
 
 @shared_task(bind=True, ignore_result=True)
