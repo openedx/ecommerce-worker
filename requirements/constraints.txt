@@ -23,7 +23,6 @@ pylint-plugin-utils==0.2.1
 pylint==1.6.4
 pytest-cov==2.10.0
 pytest==4.6.11
-PyYAML==5.1
 sailthru-client==2.2.3
 testfixtures==4.13.3
 tox==3.15.2
