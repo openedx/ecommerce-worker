@@ -1,6 +1,7 @@
 """
 This file contains a primitive cache
 """
+from __future__ import absolute_import
 import threading
 import time
 

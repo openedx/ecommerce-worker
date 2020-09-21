@@ -1,4 +1,5 @@
 """Tests of Sailthru worker code."""
+from __future__ import absolute_import, unicode_literals
 import logging
 import json
 from decimal import Decimal
