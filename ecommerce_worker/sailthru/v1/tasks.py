@@ -382,7 +382,7 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
         },
         logger_prefix="Offer Assignment",
         site_code=site_code,
-        template='assignment_email'
+        template='enterprise_portal_email'
     )
     response, is_eligible_for_retry = notification.send()
     if is_eligible_for_retry:
@@ -456,7 +456,7 @@ def send_offer_update_email(self, user_email, subject, email_body, site_code=Non
         },
         logger_prefix="Offer Assignment",
         site_code=site_code,
-        template='assignment_email'
+        template='enterprise_portal_email'
     )
     _, is_eligible_for_retry = notification.send()
     if is_eligible_for_retry:
