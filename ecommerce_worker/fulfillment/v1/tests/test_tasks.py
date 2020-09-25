@@ -1,5 +1,6 @@
 """Tests of fulfillment tasks."""
 # pylint: disable=no-value-for-parameter
+from __future__ import absolute_import, unicode_literals
 from unittest import TestCase
 
 from celery.exceptions import Ignore

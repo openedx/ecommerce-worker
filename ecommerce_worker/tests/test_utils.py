@@ -1,4 +1,5 @@
 """ Test coverage for ecommerce_worker/utils.py """
+from __future__ import absolute_import
 from unittest import TestCase
 
 import ddt

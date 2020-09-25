@@ -13,12 +13,12 @@ configparser==4.0.2       # via -r requirements/base.txt, importlib-metadata
 contextlib2==0.6.0.post1  # via -r requirements/base.txt, importlib-metadata, zipp
 edx-rest-api-client==1.5.0  # via -c requirements/constraints.txt, -r requirements/base.txt
 idna==2.10                # via -r requirements/base.txt, requests
-importlib-metadata==1.7.0  # via -r requirements/base.txt, kombu
+importlib-metadata==2.0.0  # via -r requirements/base.txt, kombu
 kombu==4.6.11             # via -r requirements/base.txt, celery
 pathlib2==2.3.5           # via -r requirements/base.txt, importlib-metadata
 pyjwt==1.7.1              # via -r requirements/base.txt, edx-rest-api-client
 pytz==2020.1              # via -r requirements/base.txt, celery
-pyyaml==5.1              # via -c requirements/constraints.txt, -r requirements/production.in
+pyyaml==5.1               # via -c requirements/constraints.txt, -r requirements/production.in
 redis==3.5.3              # via -r requirements/base.txt
 requests==2.24.0          # via -r requirements/base.txt, sailthru-client, slumber
 sailthru-client==2.2.3    # via -c requirements/constraints.txt, -r requirements/base.txt

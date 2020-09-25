@@ -2,6 +2,7 @@
 This file contains celery tasks for email marketing signal handler.
 """
 
+from __future__ import absolute_import
 from decimal import Decimal
 
 from celery import shared_task
