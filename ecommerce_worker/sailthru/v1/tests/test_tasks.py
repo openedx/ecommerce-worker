@@ -684,12 +684,14 @@ class SendOfferEmailsTests(BaseSendEmailTests):
     SUBJECT = 'New edX course assignment'
     EMAIL_BODY = 'Template message with johndoe@unknown.com GIL7RUEOU7VHBH7Q ' \
                  'http://tempurl.url/enroll 3 2012-04-23'
+    BASE_ENTERPRISE_URL = 'https://bears.party'
 
     ASSIGNMENT_TASK_KWARGS = {
         'user_email': USER_EMAIL,
         'offer_assignment_id': OFFER_ASSIGNMENT_ID,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
+        'base_enterprise_url': BASE_ENTERPRISE_URL,
     }
 
     UPDATE_TASK_KWARGS = {
@@ -889,8 +891,10 @@ class SendOfferEmailsTests(BaseSendEmailTests):
             (
                 self.LOG_TASK_NAME,
                 'INFO',
-                '[Offer Assignment] Offer assignment notification sent with message --- {message}'.format(
-                    message=self.EMAIL_BODY
+                '[Offer Assignment] Offer assignment notification sent with message --- ' +
+                '{message}; base enterprise url --- {base_enterprise_url}'.format(
+                    message=self.EMAIL_BODY,
+                    base_enterprise_url=self.BASE_ENTERPRISE_URL
                 )
             ),
         )

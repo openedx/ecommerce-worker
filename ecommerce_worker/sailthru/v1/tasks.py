@@ -361,7 +361,8 @@ def send_course_refund_email(self, email, refund_id, amount, course_name, order_
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body, site_code=None):
+def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body,
+                                site_code=None, base_enterprise_url=''):
     """
     Sends the offer assignment email.
 
@@ -372,6 +373,7 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
         subject (str): Email subject.
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
+        base_enterprise_url (str): Url for the enterprise learner portal.
     """
     config = get_sailthru_configuration(site_code)
     notification = Notification(
@@ -379,7 +381,8 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
         emails=user_email,
         email_vars={
             'subject': subject,
-            'email_body': email_body
+            'email_body': email_body,
+            'base_enterprise_url': base_enterprise_url,
         },
         logger_prefix="Offer Assignment",
         site_code=site_code,
@@ -392,8 +395,10 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
     if response and response.is_ok():
         send_id = response.get_body().get('send_id')  # pylint: disable=no-member
         if _update_assignment_email_status(offer_assignment_id, send_id, 'success'):
-            logger.info('[Offer Assignment] Offer assignment notification sent with message --- {message}'.format(
-                message=email_body))
+            logger.info('[Offer Assignment] Offer assignment notification sent with message --- ' +
+                        '{message}; base enterprise url --- {base_enterprise_url}'.format(
+                            message=email_body,
+                            base_enterprise_url=base_enterprise_url))
         else:
             logger.exception(
                 '[Offer Assignment] An error occurred while updating email status data for '
