@@ -48,7 +48,7 @@ upgrade: ## update the requirements/*.txt files with the latest packages satisfy
 	pip-compile --upgrade -o requirements/optional.txt requirements/optional.in
 	pip-compile --upgrade -o requirements/production.txt requirements/production.in
 	# Let tox control the Django version for tests
-	sed '/^[dD]jango==/d' requirements/test.txt > requirements/test.tmp
+	sed '/^[dD]jango==/d;/^edx-rest-api-client==/d' requirements/test.txt > requirements/test.tmp
 	mv requirements/test.tmp requirements/test.txt
 
 .PHONY: help requirements worker test html_coverage quality validate clean upgrade

@@ -10,6 +10,10 @@
 
 # These were previously pinned in ecommerce-worker, and will stay that way
 # until we go through the process of relaxing them gradually.
+
+# Already present in Python 3 standard library
+futures; python_version == "2.7"
+
 astroid==1.4.9
 coverage==4.4.0
 ddt==1.0.1
@@ -28,7 +32,6 @@ sailthru-client==2.2.3
 testfixtures==4.13.3
 tox==3.15.2
 more-itertools==5.0.0
-edx-rest-api-client==1.5.0
 six==1.15.0
 tox==3.15.2
 
@@ -36,3 +39,12 @@ tox==3.15.2
 httpretty==0.8.10
 tox-battery < 0.6
 celery < 5.0
+
+# edx-rest-api-client version 4.0.0 dropped support to python 2.7
+edx-rest-api-client<4.0.0
+
+# version 3.0.0 dropped python 2.7 support
+edx-django-utils<3.0.0
+
+# edx-utils is bringing latest django=2.2 so adding pin
+django<2.0

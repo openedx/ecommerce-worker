@@ -11,15 +11,20 @@ certifi==2020.6.20        # via requests
 chardet==3.0.4            # via requests
 configparser==4.0.2       # via importlib-metadata
 contextlib2==0.6.0.post1  # via importlib-metadata, zipp
-edx-rest-api-client==1.5.0  # via -c requirements/constraints.txt, -r requirements/base.in
+django-waffle==2.0.0      # via edx-django-utils
+django==1.11.29           # via -c requirements/constraints.txt, edx-django-utils
+edx-django-utils==2.0.4   # via -c requirements/constraints.txt, edx-rest-api-client
+edx-rest-api-client==3.0.2  # via -c requirements/constraints.txt, -r requirements/base.in
 idna==2.10                # via requests
 importlib-metadata==2.0.0  # via kombu
 kombu==4.6.11             # via celery
+newrelic==4.8.0.110       # via -c requirements/constraints.txt, edx-django-utils
 pathlib2==2.3.5           # via importlib-metadata
+psutil==1.2.1             # via edx-django-utils
 pyjwt==1.7.1              # via edx-rest-api-client
-pytz==2020.1              # via celery
+pytz==2020.1              # via celery, django
 redis==3.5.3              # via -r requirements/base.in
-requests==2.24.0          # via sailthru-client, slumber
+requests==2.24.0          # via edx-rest-api-client, sailthru-client, slumber
 sailthru-client==2.2.3    # via -c requirements/constraints.txt, -r requirements/base.in
 scandir==1.10.0           # via pathlib2
 simplejson==3.17.2        # via sailthru-client
