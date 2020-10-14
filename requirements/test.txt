@@ -21,6 +21,8 @@ ddt==1.0.1                # via -c requirements/constraints.txt, -r requirements
 django-waffle==2.0.0      # via -r requirements/base.txt, edx-django-utils
 edx-django-utils==2.0.4   # via -c requirements/constraints.txt, -r requirements/base.txt, edx-rest-api-client
 edx-lint==0.5.2           # via -c requirements/constraints.txt, -r requirements/test.in
+edx-rest-api-client==3.0.2 ; python_version == "2.7"  # via -r requirements/base.txt
+edx-rest-api-client==5.2.1 ; python_version >= "3.5"  # via -r requirements/base.txt
 funcsigs==1.0.2           # via mock, pytest
 futures==3.3.0 ; python_version == "2.7"  # via -c requirements/constraints.txt, isort
 idna==2.10                # via -r requirements/base.txt, requests
