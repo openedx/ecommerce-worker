@@ -16,10 +16,16 @@ from requests.exceptions import RequestException
 from six import text_type
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.tasks import (
-    update_course_enrollment, _update_unenrolled_list, _get_course_content, _get_course_content_from_ecommerce,
-    send_course_refund_email, send_offer_assignment_email, send_offer_update_email, send_offer_usage_email,
     _update_assignment_email_status,
-
+    _update_unenrolled_list,
+    _get_course_content,
+    _get_course_content_from_ecommerce,
+    send_code_assignment_nudge_email,
+    send_course_refund_email,
+    send_offer_assignment_email,
+    send_offer_update_email,
+    send_offer_usage_email,
+    update_course_enrollment,
 )
 from ecommerce_worker.utils import get_configuration
 
@@ -706,6 +712,12 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         'email_body': EMAIL_BODY,
     }
 
+    NUDGE_TASK_KWARGS = {
+        'email': USER_EMAIL,
+        'subject': SUBJECT,
+        'email_body': EMAIL_BODY,
+    }
+
     def execute_task(self):
         """ Execute the send_offer_assignment_email task. """
         send_offer_assignment_email(**self.ASSIGNMENT_TASK_KWARGS)
@@ -726,6 +738,7 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS, "Offer Assignment"),
         (send_offer_update_email, UPDATE_TASK_KWARGS, "Offer Assignment"),
         (send_offer_usage_email, USAGE_TASK_KWARGS, "Offer Usage"),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS, "Code Assignment Nudge Email"),
     )
     @ddt.unpack
     def test_client_instantiation_error(self, task, task_kwargs, logger_prefix):
@@ -749,6 +762,7 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS, "send", "Offer Assignment"),
         (send_offer_update_email, UPDATE_TASK_KWARGS, "send", "Offer Assignment"),
         (send_offer_usage_email, USAGE_TASK_KWARGS, "multi_send", "Offer Usage"),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS, "send", "Code Assignment Nudge Email"),
     )
     @ddt.unpack
     def test_api_client_error(self, task, task_kwargs, mock_send, logger_prefix, mock_log):
@@ -768,6 +782,7 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS, "Offer Assignment"),
         (send_offer_update_email, UPDATE_TASK_KWARGS, "Offer Assignment"),
         (send_offer_usage_email, USAGE_TASK_KWARGS, "Offer Usage"),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS, "Code Assignment Nudge Email"),
     )
     @ddt.unpack
     def test_api_error_with_retry(self, task, task_kwargs, logger_prefix):
@@ -809,6 +824,7 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS, "Offer Assignment"),
         (send_offer_update_email, UPDATE_TASK_KWARGS, "Offer Assignment"),
         (send_offer_usage_email, USAGE_TASK_KWARGS, "Offer Usage"),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS, "Code Assignment Nudge Email"),
     )
     @ddt.unpack
     def test_api_error_without_retry(self, task, task_kwargs, logger_prefix):
@@ -850,6 +866,7 @@ class SendOfferEmailsTests(BaseSendEmailTests):
     @ddt.data(
         (send_offer_update_email, UPDATE_TASK_KWARGS, "Offer Assignment"),
         (send_offer_usage_email, USAGE_TASK_KWARGS, "Offer Usage"),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS, "Code Assignment Nudge Email"),
     )
     @ddt.unpack
     def test_api(self, task, task_kwargs, logger_prefix):

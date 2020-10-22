@@ -384,7 +384,7 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
             'email_body': email_body,
             'base_enterprise_url': base_enterprise_url,
         },
-        logger_prefix="Offer Assignment",
+        logger_prefix='Offer Assignment',
         site_code=site_code,
         template='enterprise_portal_email'
     )
@@ -460,7 +460,7 @@ def send_offer_update_email(self, user_email, subject, email_body, site_code=Non
             'subject': subject,
             'email_body': email_body
         },
-        logger_prefix="Offer Assignment",
+        logger_prefix='Offer Assignment',
         site_code=site_code,
         template='enterprise_portal_email'
     )
@@ -489,10 +489,39 @@ def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
             'subject': subject,
             'email_body': email_body
         },
-        logger_prefix="Offer Usage",
+        logger_prefix='Offer Usage',
         site_code=site_code,
         template='assignment_email'
     )
     _, is_eligible_for_retry = notification.send(is_multi_send=True)
+    if is_eligible_for_retry:
+        schedule_retry(self, config)
+
+
+@shared_task(bind=True, ignore_result=True)
+def send_code_assignment_nudge_email(self, email, subject, email_body, site_code=None):
+    """
+    Sends the code assignment nudge email.
+
+    Args:
+        self: Ignore.
+        email (str): Recipient's email address.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+    """
+    config = get_sailthru_configuration(site_code)
+    notification = Notification(
+        config=config,
+        emails=email,
+        email_vars={
+            'subject': subject,
+            'email_body': email_body
+        },
+        logger_prefix='Code Assignment Nudge Email',
+        site_code=site_code,
+        template='assignment_email'
+    )
+    _, is_eligible_for_retry = notification.send()
     if is_eligible_for_retry:
         schedule_retry(self, config)
