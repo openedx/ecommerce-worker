@@ -8,7 +8,7 @@ import time
 lock = threading.Lock()  # pylint: disable=invalid-name
 
 
-class CacheObject(object):
+class CacheObject:
     """Object saved in cache"""
     def __init__(self, value, duration):
         self.value = value

@@ -11,7 +11,7 @@ from ecommerce_worker.sailthru.v1.utils import can_retry_sailthru_request, get_s
 log = get_task_logger(__name__)
 
 
-class Notification(object):
+class Notification:
     """
     This class exports the 'send' function for sending the emails.
     """
