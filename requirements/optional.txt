@@ -4,4 +4,4 @@
 #
 #    make upgrade
 #
-newrelic==4.8.0.110       # via -c requirements/constraints.txt, -r requirements/optional.in
+newrelic==5.22.0.151      # via -r requirements/optional.in

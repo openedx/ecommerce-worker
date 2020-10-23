@@ -9,6 +9,9 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from sailthru.sailthru_error import SailthruClientError
 
+from requests.exceptions import RequestException
+from six import text_type
+
 from ecommerce_worker.cache import Cache
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.notification import Notification
@@ -18,8 +21,6 @@ from ecommerce_worker.sailthru.v1.utils import (
     get_sailthru_configuration
 )
 from ecommerce_worker.utils import get_ecommerce_client
-from requests.exceptions import RequestException
-from six import text_type
 
 logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 cache = Cache()  # pylint: disable=invalid-name
@@ -257,7 +258,7 @@ def update_course_enrollment(self, email, course_url, purchase_incomplete, mode,
         if mode == 'verified':
             # upgrade complete
             send_template = config.get('SAILTHRU_UPGRADE_TEMPLATE')
-        elif mode == 'audit' or mode == 'honor':
+        elif mode in ('audit', 'honor'):
             # free enroll
             new_enroll = True
             send_template = config.get('SAILTHRU_ENROLL_TEMPLATE')
@@ -395,7 +396,7 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
     if response and response.is_ok():
         send_id = response.get_body().get('send_id')  # pylint: disable=no-member
         if _update_assignment_email_status(offer_assignment_id, send_id, 'success'):
-            logger.info('[Offer Assignment] Offer assignment notification sent with message --- ' +
+            logger.info('[Offer Assignment] Offer assignment notification sent with message --- '
                         '{message}; base enterprise url --- {base_enterprise_url}'.format(
                             message=email_body,
                             base_enterprise_url=base_enterprise_url))
@@ -437,7 +438,7 @@ def _update_assignment_email_status(offer_assignment_id, send_id, status, site_c
             )
         )
         return False
-    return True if api_response.get('status') == 'updated' else False
+    return bool(api_response.get('status') == 'updated')
 
 
 @shared_task(bind=True, ignore_result=True)

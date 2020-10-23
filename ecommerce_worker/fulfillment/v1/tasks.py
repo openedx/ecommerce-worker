@@ -49,14 +49,13 @@ def fulfill_order(self, order_number, site_code=None, email_opt_in=False):
             # The order is not fulfillable. Therefore, it must be complete.
             logger.info('Order [%s] has already been fulfilled. Ignoring.', order_number)
             raise Ignore()
-        else:
-            # Unknown client error. Let's retry to resolve it.
-            logger.warning(
-                'Fulfillment of order [%s] failed because of HttpClientError. Retrying',
-                order_number,
-                exc_info=True
-            )
-            _retry_order(self, exc, max_fulfillment_retries, order_number)
+        # Unknown client error. Let's retry to resolve it.
+        logger.warning(
+            'Fulfillment of order [%s] failed because of HttpClientError. Retrying',
+            order_number,
+            exc_info=True
+        )
+        _retry_order(self, exc, max_fulfillment_retries, order_number)
 
     except (exceptions.HttpServerError, exceptions.Timeout, SSLError) as exc:
         # Fulfillment failed, retry
