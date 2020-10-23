@@ -1,5 +1,6 @@
 """ Utility functions. """
 
+from __future__ import absolute_import
 from celery.utils.log import get_task_logger
 from sailthru.sailthru_client import SailthruClient
 

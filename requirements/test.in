@@ -6,7 +6,6 @@ astroid
 coverage
 ddt
 edx-lint
-httpretty
 mock
 pep8
 pylint
@@ -14,4 +13,5 @@ pylint-django
 pylint-plugin-utils
 pytest
 pytest-cov
+responses
 testfixtures

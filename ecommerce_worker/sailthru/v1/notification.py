@@ -1,6 +1,7 @@
 """
 Notification class for sending the notification emails.
 """
+from __future__ import absolute_import
 from celery.utils.log import get_task_logger
 
 from sailthru.sailthru_error import SailthruClientError

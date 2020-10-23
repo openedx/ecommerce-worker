@@ -68,3 +68,6 @@ target/
 private.py
 
 .idea/
+
+# pyenv
+.python-version
