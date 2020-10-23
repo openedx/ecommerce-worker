@@ -15,12 +15,17 @@ before_install:
 matrix:
   include:
     - python: 3.5
-      env: TARGETS="test"
+      env: TARGETS="PYTHON_VERSION=py35 test"
+      after_success:
+        - pip3 install -U codecov
+        - codecov
+    - python: 3.8
+      env: TARGETS="PYTHON_VERSION=py38 test"
       after_success:
         - pip3 install -U codecov
         - codecov
     - python: 3.5
-      envs: TARGETS="quality"
+      envs: TARGETS="PYTHON_VERSION=py35 quality"
 
 install:
     - docker exec ecomworker bash -c "
