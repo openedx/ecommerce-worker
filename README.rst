@@ -10,8 +10,8 @@ The Celery tasks contained herein are used to implement asynchronous order fulfi
 
 Prerequisites
 -------------
-* Python 2.7.x (not tested with Python 3.x)
-* Celery 3.1.x
+* Python 3.x
+* Celery 4.x
 * RabbitMQ 3.5.x
 
 Getting Started
