@@ -521,7 +521,7 @@ def send_code_assignment_nudge_email(self, email, subject, email_body, site_code
         },
         logger_prefix='Code Assignment Nudge Email',
         site_code=site_code,
-        template='assignment_email'
+        template='enterprise_portal_email'
     )
     _, is_eligible_for_retry = notification.send()
     if is_eligible_for_retry:
