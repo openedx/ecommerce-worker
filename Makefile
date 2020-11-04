@@ -1,5 +1,5 @@
 PACKAGE = ecommerce_worker
-PYTHON_VERSION = py35
+PYTHON_VERSION = py38
 
 help: ## display this help message
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -18,7 +18,7 @@ test: requirements_tox  ## run unit tests and report on coverage
 	tox -e ${PYTHON_VERSION}
 
 quality: requirements_tox  ## run pep8 and pylint
-	tox -e quality
+	tox -e ${PYTHON_VERSION}-quality
 
 validate: clean test quality  ## run tests and quality checks
 
