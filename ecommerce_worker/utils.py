@@ -52,7 +52,7 @@ def get_ecommerce_client(url_postfix='', site_code=None):
     Get client for fetching data from ecommerce API.
     Arguments:
         site_code (str): (Optional) The SITE_OVERRIDES key to inspect for site-specific values
-        url_postfix (str): (Optional) The URL postfix value to append to the ECOMMERCE_API_ROOT value.
+        url_postfix : (Optional) The URL postfix value to append to the ECOMMERCE_API_ROOT value.
 
     Returns:
         EdxRestApiClient object
