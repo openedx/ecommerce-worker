@@ -1,6 +1,6 @@
 # CELERY
 # Default broker URL. See http://celery.readthedocs.org/en/latest/configuration.html#broker-url.
-BROKER_URL = 'amqp://celery:celery@127.0.0.1:5672'
+BROKER_URL = 'redis://:celery@127.0.0.1:6379'
 
 # Disable connection pooling. Connections may be severed by load balancers.
 # This forces the application to connect explicitly to the broker each time
