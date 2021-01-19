@@ -691,6 +691,7 @@ class SendOfferEmailsTests(BaseSendEmailTests):
     EMAIL_BODY = 'Template message with johndoe@unknown.com GIL7RUEOU7VHBH7Q ' \
                  'http://tempurl.url/enroll 3 2012-04-23'
     BASE_ENTERPRISE_URL = 'https://bears.party'
+    SENDER_ALIAS = 'edx Support Team'
 
     ASSIGNMENT_TASK_KWARGS = {
         'user_email': USER_EMAIL,
@@ -698,12 +699,14 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
         'base_enterprise_url': BASE_ENTERPRISE_URL,
+        'sender_alias': SENDER_ALIAS,
     }
 
     UPDATE_TASK_KWARGS = {
         'user_email': USER_EMAIL,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
+        'sender_alias': SENDER_ALIAS,
     }
 
     USAGE_TASK_KWARGS = {
