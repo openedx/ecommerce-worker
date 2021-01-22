@@ -362,7 +362,7 @@ def send_course_refund_email(self, email, refund_id, amount, course_name, order_
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body,
+def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
                                 site_code=None, base_enterprise_url=''):
     """
     Sends the offer assignment email.
@@ -375,6 +375,7 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
         base_enterprise_url (str): Url for the enterprise learner portal.
+        sender_alias (str): Enterprise Customer sender alias used as From Name.
     """
     config = get_sailthru_configuration(site_code)
     notification = Notification(
@@ -384,6 +385,7 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
             'subject': subject,
             'email_body': email_body,
             'base_enterprise_url': base_enterprise_url,
+            'sender_alias': sender_alias,
         },
         logger_prefix='Offer Assignment',
         site_code=site_code,
@@ -442,7 +444,7 @@ def _update_assignment_email_status(offer_assignment_id, send_id, status, site_c
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_update_email(self, user_email, subject, email_body, site_code=None):
+def send_offer_update_email(self, user_email, subject, email_body, sender_alias, site_code=None):
     """
     Sends the offer emails after assignment, either for revoking or reminding.
 
@@ -452,6 +454,7 @@ def send_offer_update_email(self, user_email, subject, email_body, site_code=Non
         subject (str): Email subject.
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
+        sender_alias (str): Enterprise Customer sender alias used as From Name.
     """
     config = get_sailthru_configuration(site_code)
     notification = Notification(
@@ -459,7 +462,8 @@ def send_offer_update_email(self, user_email, subject, email_body, site_code=Non
         emails=user_email,
         email_vars={
             'subject': subject,
-            'email_body': email_body
+            'email_body': email_body,
+            'sender_alias': sender_alias,
         },
         logger_prefix='Offer Assignment',
         site_code=site_code,
@@ -517,7 +521,8 @@ def send_code_assignment_nudge_email(self, email, subject, email_body, site_code
         emails=email,
         email_vars={
             'subject': subject,
-            'email_body': email_body
+            'email_body': email_body,
+            'sender_alias': 'edX Support Team',
         },
         logger_prefix='Code Assignment Nudge Email',
         site_code=site_code,
