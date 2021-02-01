@@ -63,6 +63,24 @@ ECOMMERCE_SERVICE_USERNAME = 'ecommerce_worker'
 # For example, the ECOMMERCE_API_ROOT value is different from one ecommerce site to the next
 SITE_OVERRIDES = None
 
+# .. toggle_name: BRAZE['BRAZE_ENABLE']
+# .. toggle_implementation: PythonConstant
+# .. toggle_default: False
+# .. toggle_description: Toggle for allowing emails to be sent via Braze instead of sailthru
+# .. toggle_use_cases: open_edx
+# .. toggle_creation_date: 2021-02-09
+# .. toggle_target_removal_date: None
+# .. toggle_warnings: None
+# .. toggle_tickets: ENT-4071
+BRAZE = {
+    'BRAZE_ENABLE': False,
+    'BRAZE_REST_API_KEY': None,
+    'BRAZE_WEBAPP_API_KEY': None,
+    'REST_API_URL': 'https://rest.iad-06.braze.com',
+    'MESSAGES_SEND_ENDPOINT': '/messages/send',
+    'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>'
+    }
+
 # Settings for Sailthru email marketing integration
 SAILTHRU = {
     # Set to false to ignore Sailthru events

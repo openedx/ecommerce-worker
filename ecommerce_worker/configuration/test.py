@@ -44,6 +44,13 @@ SAILTHRU.update({
     'SAILTHRU_SECRET': 'secret',
 })
 
+# Braze unit test settings
+BRAZE.update({
+    'BRAZE_ENABLE': True,
+    'BRAZE_REST_API_KEY': 'rest_api_key',
+    'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
+})
+
 # Sailthru support unit test settings with override
 TEST_SITE_OVERRIDES = {
     'test_site': { 'SAILTHRU': dict(SAILTHRU,
