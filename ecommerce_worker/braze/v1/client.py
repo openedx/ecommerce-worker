@@ -31,7 +31,7 @@ def get_braze_configuration(site_code):
     return config
 
 
-def get_braze_client(site_code):
+def get_braze_client(site_code, endpoint=None):
     """
     Returns a Braze client for the specified site.
 
@@ -57,21 +57,26 @@ def get_braze_client(site_code):
     rest_api_key = config.get('BRAZE_REST_API_KEY')
     webapp_api_key = config.get('BRAZE_WEBAPP_API_KEY')
     rest_api_url = config.get('REST_API_URL')
-    messages_send_endpoint = config.get('MESSAGES_SEND_ENDPOINT')
+    message_endpoint = endpoint or config.get('MESSAGES_SEND_ENDPOINT')
     from_email = config.get('FROM_EMAIL')
 
     if (
             not rest_api_key or
             not webapp_api_key or
             not rest_api_url or
-            not messages_send_endpoint or
+            not message_endpoint or
             not from_email
     ):
         msg = 'Required parameters missing for site {}'.format(site_code)
         log.error(msg)
         raise ConfigurationError(msg)
 
-    return BrazeClient(rest_api_key, webapp_api_key, rest_api_url + messages_send_endpoint, from_email)
+    return BrazeClient(
+        rest_api_key=rest_api_key,
+        webapp_api_key=webapp_api_key,
+        request_url=rest_api_url + message_endpoint,
+        from_email=from_email
+    )
 
 
 class BrazeClient(object):

@@ -26,6 +26,18 @@ class BrazeClientTests(TestCase):
     """
     SITE_CODE = 'test'
     SITE_OVERRIDES_MODULE = 'ecommerce_worker.configuration.test.SITE_OVERRIDES'
+    BRAZE_OVERRIDES = {
+        SITE_CODE: {
+            'BRAZE': {
+                'BRAZE_ENABLE': True,
+                'BRAZE_REST_API_KEY': 'rest_api_key',
+                'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
+                'REST_API_URL': 'https://rest.iad-06.braze.com',
+                'MESSAGES_SEND_ENDPOINT': '/messages/send',
+                'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
+            }
+        }
+    }
 
     def assert_get_braze_client_raises(self, exc_class, config):
         """
@@ -95,13 +107,14 @@ class BrazeClientTests(TestCase):
             json=success_response,
             status=201)
 
-        client = get_braze_client(self.SITE_CODE)
-        response = client.send_message(
-            ['test1@example.com', 'test2@example.com'],
-            'Test Subject',
-            '<html>Test Html Message</html>'
-        )
-        self.assertEqual(response['message'], 'success')
+        with mock.patch.dict(self.SITE_OVERRIDES_MODULE, self.BRAZE_OVERRIDES):
+            client = get_braze_client(self.SITE_CODE)
+            response = client.send_message(
+                ['test1@example.com', 'test2@example.com'],
+                'Test Subject',
+                '<html>Test Html Message</html>'
+            )
+            self.assertEqual(response['message'], 'success')
 
     @responses.activate
     @ddt.data(
@@ -126,14 +139,14 @@ class BrazeClientTests(TestCase):
             json=failure_response,
             status=status_code
         )
-
-        client = get_braze_client(self.SITE_CODE)
-        with self.assertRaises(error):
-            response = client.send_message(
-                ['test1@example.com', 'test2@example.com'],
-                'Test Subject',
-                '<html>Test Html Message</html>'
-            )
+        with mock.patch.dict(self.SITE_OVERRIDES_MODULE, self.BRAZE_OVERRIDES):
+            client = get_braze_client(self.SITE_CODE)
+            with self.assertRaises(error):
+                response = client.send_message(
+                    ['test1@example.com', 'test2@example.com'],
+                    'Test Subject',
+                    '<html>Test Html Message</html>'
+                )
 
     @ddt.data(
         (['test1@example.com', 'test2@example.com'], None, '<html>Test Html Message</html>'),
@@ -145,6 +158,7 @@ class BrazeClientTests(TestCase):
         """
         Verify that an error is raised for missing email parameters.
         """
-        client = get_braze_client(self.SITE_CODE)
-        with self.assertRaises(BrazeClientError):
-            response = client.send_message(email, subject, body)
+        with mock.patch.dict(self.SITE_OVERRIDES_MODULE, self.BRAZE_OVERRIDES):
+            client = get_braze_client(self.SITE_CODE)
+            with self.assertRaises(BrazeClientError):
+                response = client.send_message(email, subject, body)

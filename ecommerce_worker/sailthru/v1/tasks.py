@@ -13,6 +13,8 @@ from requests.exceptions import RequestException
 from six import text_type
 
 from ecommerce_worker.cache import Cache
+from ecommerce_worker.braze.v1.client import get_braze_client, get_braze_configuration
+from ecommerce_worker.braze.v1.exceptions import BrazeError, BrazeRateLimitError, BrazeInternalServerError
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.notification import Notification
 from ecommerce_worker.sailthru.v1.utils import (
@@ -361,11 +363,58 @@ def send_course_refund_email(self, email, refund_id, amount, course_name, order_
             )
 
 
-@shared_task(bind=True, ignore_result=True)
-def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
+def _send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
                                 site_code=None, base_enterprise_url=''):
     """
-    Sends the offer assignment email.
+    Sends the offer assignment email via Braze.
+
+    Args:
+        self: Ignore.
+        user_email (str): Recipient's email address.
+        offer_assignment_id (str): Key of the entry in the offer_assignment model.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+        base_enterprise_url (str): Url for the enterprise learner portal.
+        sender_alias (str): Enterprise Customer sender alias used as From Name.
+    """
+    config = get_braze_configuration(site_code)
+    try:
+        braze_client = get_braze_client(site_code)
+        response = braze_client.send_message(
+            email_ids=list(user_email),
+            subject=subject,
+            body=email_body,
+            sender_alias=sender_alias
+        )
+        if response and response['success']:
+            dispatch_id = response['dispatch_id']
+            if _update_assignment_email_status(offer_assignment_id, dispatch_id, 'success'):
+                logger.info('[Offer Assignment] Offer assignment notification sent with message --- '
+                            '{message}'.format(message=email_body))
+            else:
+                logger.exception(
+                    '[Offer Assignment] An error occurred while updating email status data for '
+                    'offer {token_offer} and email {token_email} via the ecommerce API.'.format(
+                        token_offer=offer_assignment_id,
+                        token_email=user_email,
+                    )
+                )
+    except (BrazeRateLimitError, BrazeInternalServerError):
+        raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
+                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS'))
+    except BrazeError:
+        logger.exception(
+            ('[Offer Assignment] Error in offer assignment notification with message --- '
+             '{message}'.format(message=email_body)
+             )
+        )
+
+
+def _send_offer_assignment_email_via_sailthru(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
+                                site_code=None, base_enterprise_url=''):
+    """
+    Sends the offer assignment email via Sailthru.
 
     Args:
         self: Ignore.
@@ -412,6 +461,32 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
             )
 
 
+@shared_task(bind=True, ignore_result=True)
+def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
+                                site_code=None, base_enterprise_url=''):
+    """
+    Sends the offer assignment email.
+
+    Args:
+        self: Ignore.
+        user_email (str): Recipient's email address.
+        offer_assignment_id (str): Key of the entry in the offer_assignment model.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+        base_enterprise_url (str): Url for the enterprise learner portal.
+        sender_alias (str): Enterprise Customer sender alias used as From Name.
+    """
+    config = get_braze_configuration(site_code)
+    braze_enable = config.get('BRAZE_ENABLE')
+    if braze_enable:
+        _send_offer_assignment_email_via_braze(
+            self, user_email, offer_assignment_id, subject, email_body, sender_alias, site_code, base_enterprise_url)
+    else:
+        _send_offer_assignment_email_via_sailthru(
+            self, user_email, offer_assignment_id, subject, email_body, sender_alias, site_code, base_enterprise_url)
+
+
 def _update_assignment_email_status(offer_assignment_id, send_id, status, site_code=None):
     """
     Update the offer_assignment and offer_assignment_email model using the Ecommerce assignmentemail api.
@@ -443,10 +518,40 @@ def _update_assignment_email_status(offer_assignment_id, send_id, status, site_c
     return bool(api_response.get('status') == 'updated')
 
 
-@shared_task(bind=True, ignore_result=True)
-def send_offer_update_email(self, user_email, subject, email_body, sender_alias, site_code=None):
+def _send_offer_update_email_via_braze(self, user_email, subject, email_body, sender_alias, site_code=None):
     """
-    Sends the offer emails after assignment, either for revoking or reminding.
+    Sends the offer emails after assignment via braze, either for revoking or reminding.
+
+    Args:
+        self: Ignore.
+        user_email (str): Recipient's email address.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+        sender_alias (str): Enterprise Customer sender alias used as From Name.
+    """
+    config = get_braze_configuration(site_code)
+    try:
+        braze_client = get_braze_client(site_code)
+        braze_client.send_message(
+            email_ids=list(user_email),
+            subject=subject,
+            body=email_body,
+            sender_alias=sender_alias
+        )
+    except (BrazeRateLimitError, BrazeInternalServerError):
+        raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
+                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS'))
+    except BrazeError:
+        logger.exception(
+            '[Offer Assignment] Error in offer update notification with message --- '
+            '{message}'.format(message=email_body)
+        )
+
+
+def _send_offer_update_email_via_sailthru(self, user_email, subject, email_body, sender_alias, site_code=None):
+    """
+    Sends the offer emails after assignment via sailthru, either for revoking or reminding.
 
     Args:
         self: Ignore.
@@ -475,9 +580,58 @@ def send_offer_update_email(self, user_email, subject, email_body, sender_alias,
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
+def send_offer_update_email(self, user_email, subject, email_body, sender_alias, site_code=None):
     """
-    Sends the offer usage email.
+    Sends the offer emails after assignment, either for revoking or reminding.
+
+    Args:
+        self: Ignore.
+        user_email (str): Recipient's email address.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+        sender_alias (str): Enterprise Customer sender alias used as From Name.
+    """
+    config = get_braze_configuration(site_code)
+    braze_enable = config.get('BRAZE_ENABLE')
+    if braze_enable:
+        _send_offer_update_email_via_braze(self, user_email, subject, email_body, sender_alias, site_code)
+    else:
+        _send_offer_update_email_via_sailthru(self, user_email, subject, email_body, sender_alias, site_code)
+
+
+def _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_code=None):
+    """
+    Sends the offer usage email via braze.
+
+    Args:
+        self: Ignore.
+        emails (str): comma separated emails.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+    """
+    config = get_braze_configuration(site_code)
+    try:
+        braze_client = get_braze_client(site_code)
+        braze_client.send_message(
+            email_ids=list(emails),
+            subject=subject,
+            body=email_body
+        )
+    except (BrazeRateLimitError, BrazeInternalServerError):
+        raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
+                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS'))
+    except BrazeError:
+        logger.exception(
+            '[Offer Usage] Error in offer usage notification with message --- '
+            '{message}'.format(message=email_body)
+        )
+
+
+def _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site_code=None):
+    """
+    Sends the offer usage email via sailthru.
 
     Args:
         self: Ignore.
@@ -504,9 +658,57 @@ def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_code_assignment_nudge_email(self, email, subject, email_body, site_code=None):
+def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
     """
-    Sends the code assignment nudge email.
+    Sends the offer usage email.
+
+    Args:
+        self: Ignore.
+        emails (str): comma separated emails.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+    """
+    config = get_braze_configuration(site_code)
+    braze_enable = config.get('BRAZE_ENABLE')
+    if braze_enable:
+        _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_code)
+    else:
+        _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site_code)
+
+
+def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, site_code=None):
+    """
+    Sends the code assignment nudge email via braze.
+
+    Args:
+        self: Ignore.
+        email (str): Recipient's email address.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+    """
+    config = get_braze_configuration(site_code)
+    try:
+        braze_client = get_braze_client(site_code)
+        braze_client.send_message(
+            email_ids=list(email),
+            subject=subject,
+            body=email_body,
+        )
+    except (BrazeRateLimitError, BrazeInternalServerError):
+        raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
+                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS'))
+    except BrazeError:
+        logger.exception(
+            '[Code Assignment Nudge Email] Error in offer nudge notification with message --- '
+            '{message}'.format(message=email_body)
+        )
+
+
+def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, site_code=None):
+    """
+    Sends the code assignment nudge email via sailthru.
 
     Args:
         self: Ignore.
@@ -531,3 +733,23 @@ def send_code_assignment_nudge_email(self, email, subject, email_body, site_code
     _, is_eligible_for_retry = notification.send()
     if is_eligible_for_retry:
         schedule_retry(self, config)
+
+
+@shared_task(bind=True, ignore_result=True)
+def send_code_assignment_nudge_email(self, email, subject, email_body, site_code=None):
+    """
+    Sends the code assignment nudge email.
+
+    Args:
+        self: Ignore.
+        email (str): Recipient's email address.
+        subject (str): Email subject.
+        email_body (str): The body of the email.
+        site_code (str): Identifier of the site sending the email.
+    """
+    config = get_braze_configuration(site_code)
+    braze_enable = config.get('BRAZE_ENABLE')
+    if braze_enable:
+        _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, site_code)
+    else:
+        _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, site_code)
