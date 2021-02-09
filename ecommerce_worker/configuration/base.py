@@ -78,7 +78,10 @@ BRAZE = {
     'BRAZE_WEBAPP_API_KEY': None,
     'REST_API_URL': 'https://rest.iad-06.braze.com',
     'MESSAGES_SEND_ENDPOINT': '/messages/send',
-    'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>'
+    'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
+    # Retry settings for Braze celery tasks
+    'BRAZE_RETRY_SECONDS': 3600,
+    'BRAZE_RETRY_ATTEMPTS': 6,
     }
 
 # Settings for Sailthru email marketing integration

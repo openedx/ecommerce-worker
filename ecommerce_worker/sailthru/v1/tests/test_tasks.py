@@ -14,6 +14,13 @@ from sailthru.sailthru_error import SailthruClientError
 from testfixtures import LogCapture
 from requests.exceptions import RequestException
 from six import text_type
+from ecommerce_worker.braze.v1.client import BrazeClient
+from ecommerce_worker.braze.v1.exceptions import (
+    BrazeError,
+    BrazeClientError,
+    BrazeInternalServerError,
+    BrazeRateLimitError
+)
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.tasks import (
     _update_assignment_email_status,
@@ -936,6 +943,324 @@ class SendOfferEmailsTests(BaseSendEmailTests):
                     message=self.EMAIL_BODY
                 )
             ),
+            (
+                self.LOG_TASK_NAME,
+                'ERROR',
+                '[Offer Assignment] An error occurred while updating offer assignment email status for offer id '
+                '{token_offer} and message id {token_send_id} via the Ecommerce API.'.format(
+                    token_offer=self.OFFER_ASSIGNMENT_ID,
+                    token_send_id=self.SEND_ID
+                )
+            ),
+            (
+                self.LOG_TASK_NAME,
+                'ERROR',
+                '[Offer Assignment] An error occurred while updating email status data for offer {token_offer} and '
+                'email {token_email} via the ecommerce API.'.format(
+                    token_offer=self.OFFER_ASSIGNMENT_ID,
+                    token_email=self.USER_EMAIL
+                )
+            )
+        )
+
+    @responses.activate
+    @ddt.data(
+        (
+            # Success case
+            {
+                'offer_assignment_id': '555',
+                'send_id': '1234ABC',
+                'status': 'updated',
+                'error': ''
+            },
+            True,
+        ),
+        (
+            # Exception case
+            {
+                'offer_assignment_id': '555',
+                'send_id': '1234ABC',
+                'status': 'failed',
+                'error': ''
+            },
+            False,
+        ),
+    )
+    @ddt.unpack
+    def test_update_assignment_email_status(self, data, return_value):
+        """
+        Test routine that updates email send status in ecommerce.
+        """
+        self.mock_ecommerce_assignmentemail_api(data)
+        self.assertEqual(
+            _update_assignment_email_status('555', '1234ABC', 'success'),
+            return_value
+        )
+
+
+@ddt.ddt
+class SendOfferEmailsTestsWithBraze(TestCase):
+    """ Validates the send_offer_assignment_email task with Braze api. """
+    LOG_NAME = 'ecommerce_worker.sailthru.v1.tasks'
+    LOG_TASK_NAME = 'ecommerce_worker.sailthru.v1.tasks'
+    USER_EMAIL = 'user@unknown.com'
+    EMAILS = 'user@unknown.com, user1@example.com'
+    OFFER_ASSIGNMENT_ID = '555'
+    SEND_ID = '66cdc28f8f082bc3074c0c79f'
+    SUBJECT = 'New edX course assignment'
+    EMAIL_BODY = 'Template message with johndoe@unknown.com GIL7RUEOU7VHBH7Q ' \
+                 'http://tempurl.url/enroll 3 2012-04-23'
+    BASE_ENTERPRISE_URL = 'https://bears.party'
+    SENDER_ALIAS = 'edx Support Team'
+    SITE_CODE = 'test'
+    SITE_OVERRIDES_MODULE = 'ecommerce_worker.configuration.test.SITE_OVERRIDES'
+    BRAZE_OVERRIDES = {
+        SITE_CODE: {
+            'BRAZE': {
+                'BRAZE_ENABLE': True,
+                'BRAZE_REST_API_KEY': 'rest_api_key',
+                'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
+                'REST_API_URL': 'https://rest.iad-06.braze.com',
+                'MESSAGES_SEND_ENDPOINT': '/messages/send',
+                'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
+                'BRAZE_RETRY_SECONDS': 3600,
+                'BRAZE_RETRY_ATTEMPTS': 6,
+            }
+        }
+    }
+
+    ASSIGNMENT_TASK_KWARGS = {
+        'user_email': USER_EMAIL,
+        'offer_assignment_id': OFFER_ASSIGNMENT_ID,
+        'subject': SUBJECT,
+        'email_body': EMAIL_BODY,
+        'base_enterprise_url': BASE_ENTERPRISE_URL,
+        'sender_alias': SENDER_ALIAS,
+        'site_code': 'test'
+    }
+
+    UPDATE_TASK_KWARGS = {
+        'user_email': USER_EMAIL,
+        'subject': SUBJECT,
+        'email_body': EMAIL_BODY,
+        'sender_alias': SENDER_ALIAS,
+        'site_code': 'test'
+    }
+
+    USAGE_TASK_KWARGS = {
+        'emails': EMAILS,
+        'subject': SUBJECT,
+        'email_body': EMAIL_BODY,
+        'site_code': 'test'
+    }
+
+    NUDGE_TASK_KWARGS = {
+        'email': USER_EMAIL,
+        'subject': SUBJECT,
+        'email_body': EMAIL_BODY,
+        'site_code': 'test'
+    }
+
+    def execute_task(self):
+        """ Execute the send_offer_assignment_email task. """
+        BRAZE = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.sailthru.v1.tasks.get_braze_configuration', Mock(return_value=BRAZE)):
+            with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=BRAZE)):
+                send_offer_assignment_email(**self.ASSIGNMENT_TASK_KWARGS)
+
+    def mock_ecommerce_assignmentemail_api(self, body, status=200):
+        """ Mock POST requests to the ecommerce assignmentemail API endpoint. """
+        responses.reset()
+        responses.add(
+            responses.POST, '{}/assignment-email/status/'.format(
+                get_configuration('ECOMMERCE_API_ROOT').strip('/')
+            ),
+            status=status,
+            body=json.dumps(body), content_type='application/json',
+        )
+
+    @patch('ecommerce_worker.sailthru.v1.tasks.get_braze_client', Mock(side_effect=BrazeError))
+    @ddt.data(
+        (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS, "Offer Assignment", 'assignment'),
+        (send_offer_update_email, UPDATE_TASK_KWARGS, "Offer Assignment", 'update'),
+        (send_offer_usage_email, USAGE_TASK_KWARGS, "Offer Usage", 'usage'),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS, "Code Assignment Nudge Email", 'nudge'),
+    )
+    @ddt.unpack
+    def test_client_instantiation_error(self, task, task_kwargs, logger_prefix, log_message):
+        """ Verify no message is sent if an error occurs while instantiating the Braze API client. """
+        BRAZE = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.sailthru.v1.tasks.get_braze_configuration', Mock(return_value=BRAZE)):
+            with LogCapture(level=logging.INFO) as log:
+                task(**task_kwargs)
+        log.check(
+            (
+                self.LOG_NAME,
+                'ERROR',
+                '[{logger_prefix}] Error in offer {log_message} notification with message --- '
+                '{message}'.format(
+                    logger_prefix=logger_prefix,
+                    log_message=log_message,
+                    message=self.EMAIL_BODY
+                )
+            ),
+        )
+
+    @patch('ecommerce_worker.sailthru.v1.tasks.logger.exception')
+    @ddt.data(
+        (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS, "Offer Assignment", 'assignment'),
+        (send_offer_update_email, UPDATE_TASK_KWARGS, "Offer Assignment", 'update'),
+        (send_offer_usage_email, USAGE_TASK_KWARGS, "Offer Usage", 'usage'),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS, "Code Assignment Nudge Email", 'nudge'),
+    )
+    @ddt.unpack
+    def test_api_client_error(self, task, task_kwargs, logger_prefix, log_message,  mock_log):
+        """ Verify API client errors are logged. """
+        BRAZE = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.sailthru.v1.tasks.get_braze_configuration', Mock(return_value=BRAZE)):
+            task(**task_kwargs)
+        mock_log.assert_called_once_with(
+            '[{logger_prefix}] Error in offer {log_message} notification with message --- '
+            '{message}'.format(
+                logger_prefix=logger_prefix,
+                log_message=log_message,
+                message=self.EMAIL_BODY
+            )
+        )
+
+    @responses.activate
+    @ddt.data(
+        (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS),
+        (send_offer_update_email, UPDATE_TASK_KWARGS),
+        (send_offer_usage_email, USAGE_TASK_KWARGS),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS),
+    )
+    @ddt.unpack
+    def test_api_429_error_with_retry(self, task, task_kwargs):
+        """ Verify the task is rescheduled if an API error occurs, and the request can be retried. """
+        failure_response = {
+            'message': 'Not a Success',
+            'status_code': 429
+        }
+        host = 'https://rest.iad-06.braze.com/messages/send'
+        responses.add(
+            responses.POST,
+            host,
+            json=failure_response,
+            status=429
+        )
+        BRAZE = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with LogCapture(level=logging.INFO) as log:
+            with patch('ecommerce_worker.sailthru.v1.tasks.get_braze_configuration', Mock(return_value=BRAZE)):
+                with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=BRAZE)):
+                    with self.assertRaises((BrazeRateLimitError, Retry)):
+                        task(**task_kwargs)
+
+    @responses.activate
+    @ddt.data(
+        (send_offer_assignment_email, ASSIGNMENT_TASK_KWARGS),
+        (send_offer_update_email, UPDATE_TASK_KWARGS),
+        (send_offer_usage_email, USAGE_TASK_KWARGS),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS),
+    )
+    @ddt.unpack
+    def test_api_500_error_with_retry(self, task, task_kwargs):
+        """ Verify 500 error triggers a request retry. """
+        failure_response = {
+            'message': 'Not a Success',
+            'status_code': 500
+        }
+        host = 'https://rest.iad-06.braze.com/messages/send'
+        responses.add(
+            responses.POST,
+            host,
+            json=failure_response,
+            status=500
+        )
+        BRAZE = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.sailthru.v1.tasks.get_braze_configuration', Mock(return_value=BRAZE)):
+            with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=BRAZE)):
+                with LogCapture(level=logging.INFO) as log:
+                    with self.assertRaises((BrazeInternalServerError, Retry)):
+                        task(**task_kwargs)
+
+    @responses.activate
+    @ddt.data(
+        (send_offer_update_email, UPDATE_TASK_KWARGS),
+        (send_offer_usage_email, USAGE_TASK_KWARGS),
+        (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS),
+    )
+    @ddt.unpack
+    def test_api(self, task, task_kwargs):
+        """
+        Test the happy path.
+        """
+        success_response = {
+            "dispatch_id": "66cdc28f8f082bc3074c0c79f",
+            "errors": [],
+            "message": "success",
+            "status_code": 201
+        }
+        host = 'https://rest.iad-06.braze.com/messages/send'
+        responses.add(
+            responses.POST,
+            host,
+            json=success_response,
+            status=201)
+        BRAZE = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.sailthru.v1.tasks.get_braze_configuration', Mock(return_value=BRAZE)):
+            with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=BRAZE)):
+                task(**task_kwargs)
+        self.assertTrue('success' in responses.calls[0].response.text)
+
+    @responses.activate
+    @patch('ecommerce_worker.sailthru.v1.tasks._update_assignment_email_status')
+    def test_message_sent(self, mock_update_assignment):
+        """ Verify a message is logged after a successful API call to send the message. """
+        success_response = {
+            'dispatch_id': '66cdc28f8f082bc3074c0c79f',
+            'errors': [],
+            'message': 'success',
+            'status_code': 201
+        }
+        host = 'https://rest.iad-06.braze.com/messages/send'
+        responses.add(
+            responses.POST,
+            host,
+            json=success_response,
+            status=201)
+        with LogCapture(level=logging.INFO) as log:
+            self.execute_task()
+        log.check(
+            (
+                self.LOG_TASK_NAME,
+                'INFO',
+                '[Offer Assignment] Offer assignment notification sent with message --- '
+                '{message}'.format(message=self.EMAIL_BODY)
+            ),
+        )
+        self.assertEqual(mock_update_assignment.call_count, 1)
+
+    @responses.activate
+    @patch('ecommerce_worker.utils.get_ecommerce_client')
+    def test_update_assignment_exception(self, mock_get_ecommerce_client):
+        """ Verify a message is logged after an unsuccessful API call to update the status. """
+        success_response = {
+            'dispatch_id': '66cdc28f8f082bc3074c0c79f',
+            'errors': [],
+            'message': 'success',
+            'status_code': 201
+        }
+        host = 'https://rest.iad-06.braze.com/messages/send'
+        responses.add(
+            responses.POST,
+            host,
+            json=success_response,
+            status=201)
+        mock_get_ecommerce_client.side_effect = RequestException
+        with LogCapture(level=logging.INFO) as log:
+            self.execute_task()
+        log.check(
             (
                 self.LOG_TASK_NAME,
                 'ERROR',
