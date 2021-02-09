@@ -19,7 +19,7 @@ ddt==1.4.1                # via -r requirements/test.in
 django-crum==0.7.9        # via -r requirements/base.txt, edx-django-utils
 django-waffle==2.1.0      # via -r requirements/base.txt, edx-django-utils
 edx-django-utils==3.13.0  # via -r requirements/base.txt, edx-rest-api-client
-edx-lint==3.0.2           # via -r requirements/test.in
+edx-lint==4.0.1           # via -r requirements/test.in
 edx-rest-api-client==5.3.0  # via -r requirements/base.txt
 idna==2.10                # via -r requirements/base.txt, requests
 iniconfig==1.1.1          # via pytest
@@ -37,11 +37,11 @@ pluggy==0.13.1            # via pytest
 psutil==5.8.0             # via -r requirements/base.txt, edx-django-utils
 py==1.10.0                # via pytest
 pycodestyle==2.6.0        # via -r requirements/test.in
-pyjwt==2.0.1              # via -r requirements/base.txt, edx-rest-api-client
+pyjwt==1.7.1              # via -c requirements/constraints.txt, -r requirements/base.txt, edx-rest-api-client
 pylint-celery==0.3        # via edx-lint
 pylint-django==2.4.2      # via -r requirements/test.in, edx-lint
 pylint-plugin-utils==0.6  # via -r requirements/test.in, pylint-celery, pylint-django
-pylint==2.6.0             # via -r requirements/test.in, edx-lint, pylint-celery, pylint-django, pylint-plugin-utils
+pylint==2.6.2             # via -r requirements/test.in, edx-lint, pylint-celery, pylint-django, pylint-plugin-utils
 pyparsing==2.4.7          # via packaging
 pytest-cov==2.11.1        # via -r requirements/test.in
 pytest==6.2.2             # via -r requirements/test.in, pytest-cov

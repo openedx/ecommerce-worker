@@ -11,7 +11,7 @@ certifi==2020.12.5        # via -r requirements/base.txt, requests
 chardet==4.0.0            # via -r requirements/base.txt, requests
 django-crum==0.7.9        # via -r requirements/base.txt, edx-django-utils
 django-waffle==2.1.0      # via -r requirements/base.txt, edx-django-utils
-django==2.2.18            # via -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt, -c requirements/constraints.txt, -r requirements/base.txt, django-crum, edx-django-utils
+django==2.2.18            # via -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt, -r requirements/base.txt, django-crum, edx-django-utils
 edx-django-utils==3.13.0  # via -r requirements/base.txt, edx-rest-api-client
 edx-rest-api-client==5.3.0  # via -r requirements/base.txt
 idna==2.10                # via -r requirements/base.txt, requests
@@ -19,7 +19,7 @@ kombu==4.6.11             # via -r requirements/base.txt, celery
 newrelic==6.0.1.155       # via -r requirements/base.txt, edx-django-utils
 pbr==5.5.1                # via -r requirements/base.txt, stevedore
 psutil==5.8.0             # via -r requirements/base.txt, edx-django-utils
-pyjwt==2.0.1              # via -r requirements/base.txt, edx-rest-api-client
+pyjwt==1.7.1              # via -c requirements/constraints.txt, -r requirements/base.txt, edx-rest-api-client
 pytz==2021.1              # via -r requirements/base.txt, celery, django
 pyyaml==5.4.1             # via -r requirements/production.in
 redis==3.5.3              # via -r requirements/base.txt
