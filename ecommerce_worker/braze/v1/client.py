@@ -6,6 +6,8 @@ from __future__ import absolute_import
 
 import requests
 
+from urllib.parse import urlencode
+
 from celery.utils.log import get_task_logger
 
 from ecommerce_worker.braze.v1.exceptions import (
@@ -37,6 +39,7 @@ def get_braze_client(site_code, endpoint=None):
 
     Arguments:
         site_code (str): Site for which the client should be configured.
+        endpoint (str): The endpoint for the API e.g. /messages/send or /email/hard_bounces
 
     Returns:
         BrazeClient
@@ -100,7 +103,7 @@ class BrazeClient(object):
         self.session = requests.Session()
         self.request_url = request_url
 
-    def __create_request(self, body):
+    def __create_post_request(self, body):
         """
         Creates a request and returns a response.
 
@@ -137,6 +140,50 @@ class BrazeClient(object):
             {'Authorization': u'Bearer {}'.format(self.rest_api_key), 'Content-Type': 'application/json'}
         )
         r = self.session.post(self.request_url, json=body, timeout=2)
+        if r.status_code == 429:
+            reset_epoch_s = float(r.headers.get('X-RateLimit-Reset', 0))
+            raise BrazeRateLimitError(reset_epoch_s)
+        elif str(r.status_code).startswith('5'):
+            raise BrazeInternalServerError
+        return r
+
+    def __create_get_request(self, parameters):
+        """
+        Creates a request and returns a response.
+
+        Arguments:
+            parameters (dict): The request parameters
+
+        Returns:
+            response (dict): The response object
+        """
+        response = {'errors': []}
+        r = self._get_request(parameters)
+        response.update(r.json())
+        response['status_code'] = r.status_code
+        message = response["message"]
+        response['success'] = (
+            message in ('success', 'queued') and not response['errors']
+        )
+        if message not in ('success', 'queued'):
+            raise BrazeClientError(message, response['errors'])
+        return response
+
+    def _get_request(self, parameters):
+        """
+        Http GET the parameters with associated headers.
+
+        Arguments:
+            parameters (dict): The request parameters
+
+        Returns:
+            r (requests.Response): The http response object
+        """
+        self.session.headers.update(
+            {'Authorization': u'Bearer {}'.format(self.rest_api_key), 'Content-Type': 'application/json'}
+        )
+        url_with_parameters = self.request_url + '?' + urlencode(parameters)
+        r = self.session.get(url_with_parameters)
         if r.status_code == 429:
             reset_epoch_s = float(r.headers.get('X-RateLimit-Reset', 0))
             raise BrazeRateLimitError(reset_epoch_s)
@@ -198,4 +245,29 @@ class BrazeClient(object):
             }
         }
 
-        return self.__create_request(message)
+        return self.__create_post_request(message)
+
+    def did_email_bounce(
+        self,
+        email_id
+    ):
+        """
+        Sends the message via Braze Rest API /email/hard_bounces
+
+        Arguments:
+            email_id (str): e.g. 'test1@example.com'
+
+        Returns:
+             True (boolean): True if email bounced,
+        """
+        if not email_id:
+            raise BrazeClientError("Missing parameters for Braze email")
+        parameters = {
+            'email': email_id
+        }
+
+        response = self.__create_get_request(parameters)
+        if response['emails']:
+            return True
+
+        return False

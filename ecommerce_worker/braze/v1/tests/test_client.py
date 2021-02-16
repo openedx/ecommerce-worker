@@ -9,6 +9,9 @@ import ddt
 import mock
 import responses
 
+from urllib.parse import urlencode
+
+from mock import patch, Mock
 from ecommerce_worker.braze.v1.client import get_braze_client
 from ecommerce_worker.braze.v1.exceptions import (
     BrazeClientError,
@@ -38,19 +41,16 @@ class BrazeClientTests(TestCase):
             }
         }
     }
+    SEND_ENDPOINT = '/messages/send'
+    BOUNCE_ENDPOINT = '/email/hard_bounces'
 
     def assert_get_braze_client_raises(self, exc_class, config):
         """
         Asserts an error is raised by a call to get_braze_client.
         """
-        overrides = {
-            self.SITE_CODE: {
-                'BRAZE': config
-            }
-        }
-        with mock.patch.dict(self.SITE_OVERRIDES_MODULE, overrides):
+        with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=config)):
             with self.assertRaises(exc_class):
-                get_braze_client(self.SITE_CODE)
+                get_braze_client(self.SITE_CODE, self.SEND_ENDPOINT)
 
     def test_get_braze_client_with_braze_disabled(self):
         """
@@ -72,8 +72,6 @@ class BrazeClientTests(TestCase):
          'REST_API_URL': 'test', 'MESSAGES_SEND_ENDPOINT': 'test', 'FROM_EMAIL': 'test'},
         {'BRAZE_REST_API_KEY': 'test', 'BRAZE_WEBAPP_API_KEY': 'test',
          'REST_API_URL': None, 'MESSAGES_SEND_ENDPOINT': 'test', 'FROM_EMAIL': 'test'},
-        {'BRAZE_REST_API_KEY': 'test', 'BRAZE_WEBAPP_API_KEY': 'test',
-         'REST_API_URL': 'test', 'MESSAGES_SEND_ENDPOINT': None, 'FROM_EMAIL': 'test'},
         {'BRAZE_REST_API_KEY': 'test', 'BRAZE_WEBAPP_API_KEY': 'test',
          'REST_API_URL': 'test', 'MESSAGES_SEND_ENDPOINT': 'test', 'FROM_EMAIL': None},
     )
@@ -105,10 +103,11 @@ class BrazeClientTests(TestCase):
             responses.POST,
             host,
             json=success_response,
-            status=201)
-
-        with mock.patch.dict(self.SITE_OVERRIDES_MODULE, self.BRAZE_OVERRIDES):
-            client = get_braze_client(self.SITE_CODE)
+            status=201
+        )
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=braze)):
+            client = get_braze_client(self.SITE_CODE, self.SEND_ENDPOINT)
             response = client.send_message(
                 ['test1@example.com', 'test2@example.com'],
                 'Test Subject',
@@ -139,8 +138,9 @@ class BrazeClientTests(TestCase):
             json=failure_response,
             status=status_code
         )
-        with mock.patch.dict(self.SITE_OVERRIDES_MODULE, self.BRAZE_OVERRIDES):
-            client = get_braze_client(self.SITE_CODE)
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=braze)):
+            client = get_braze_client(self.SITE_CODE, self.SEND_ENDPOINT)
             with self.assertRaises(error):
                 response = client.send_message(
                     ['test1@example.com', 'test2@example.com'],
@@ -158,7 +158,93 @@ class BrazeClientTests(TestCase):
         """
         Verify that an error is raised for missing email parameters.
         """
-        with mock.patch.dict(self.SITE_OVERRIDES_MODULE, self.BRAZE_OVERRIDES):
-            client = get_braze_client(self.SITE_CODE)
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=braze)):
+            client = get_braze_client(self.SITE_CODE, self.SEND_ENDPOINT)
             with self.assertRaises(BrazeClientError):
                 response = client.send_message(email, subject, body)
+
+    @ddt.data(
+        (
+            {
+                'emails': [
+                   {
+                       'email': 'foo@braze.com',
+                       'hard_bounced_at': '2016-08-25 15:24:32 +0000'
+                   }
+                ],
+                'message': 'success',
+            },
+            True
+        ),
+        (
+            {
+                'emails': [],
+                'message': 'success',
+            },
+            False
+        ),
+    )
+    @ddt.unpack
+    @responses.activate
+    def test_bounced_email(self, response, did_bounce):
+        """
+        Verify that an email id bounced on Braze.
+        """
+        bounced_email = 'foo@braze.com'
+        host = 'https://rest.iad-06.braze.com/email/hard_bounces?{email}'.format(
+            email=urlencode({'email': bounced_email})
+        )
+
+        responses.add(
+            responses.GET,
+            host,
+            json=response,
+            status=200
+        )
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=braze)):
+            client = get_braze_client(self.SITE_CODE, self.BOUNCE_ENDPOINT)
+            bounce = client.did_email_bounce(bounced_email)
+            self.assertEqual(bounce, did_bounce)
+
+    @responses.activate
+    @ddt.data(
+        (400, BrazeClientError),
+        (429, BrazeRateLimitError),
+        (500, BrazeInternalServerError),
+    )
+    @ddt.unpack
+    def test_bounce_message_failure(self, status_code, error):
+        """
+        Verify that a failed email message throws the relevant error.
+        """
+        failure_response = {
+            'message': 'Not a Success'
+        }
+        bounced_email = 'foo@braze.com'
+        host = 'https://rest.iad-06.braze.com/email/hard_bounces?{email}'.format(
+            email=urlencode({'email': bounced_email})
+        )
+
+        responses.add(
+            responses.GET,
+            host,
+            json=failure_response,
+            status=status_code
+        )
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=braze)):
+            client = get_braze_client(self.SITE_CODE, self.BOUNCE_ENDPOINT)
+            with self.assertRaises(error):
+                client.did_email_bounce(bounced_email)
+
+    def test_did_email_bounce_failure_missing_parameters(self):
+        """
+        Verify that an error is raised for missing parameters.
+        """
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
+        with patch('ecommerce_worker.braze.v1.client.get_braze_configuration', Mock(return_value=braze)):
+            client = get_braze_client(self.SITE_CODE, self.BOUNCE_ENDPOINT)
+            with self.assertRaises(BrazeClientError):
+                client.did_email_bounce(email_id=None)
