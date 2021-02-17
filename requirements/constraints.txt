@@ -17,6 +17,8 @@
 # breaking changes in CLI and dropped support for python3.5 in celery 5.0
 celery<5.0
 
-
 # PyJWT>=2.0 is causing test failures
-pyjwt<2.0 
+pyjwt<2.0
+
+# edx-rest-api-client>=5.3.0 is causing a test failure
+edx-rest-api-client<5.3.0
