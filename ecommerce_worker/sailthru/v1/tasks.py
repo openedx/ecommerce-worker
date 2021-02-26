@@ -379,9 +379,8 @@ def _send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id
         sender_alias (str): Enterprise Customer sender alias used as From Name.
     """
     config = get_braze_configuration(site_code)
-    endpoint = config.get('MESSAGES_SEND_ENDPOINT')
     try:
-        braze_client = get_braze_client(site_code, endpoint)
+        braze_client = get_braze_client(site_code)
         response = braze_client.send_message(
             email_ids=list(user_email),
             subject=subject,
@@ -532,9 +531,8 @@ def _send_offer_update_email_via_braze(self, user_email, subject, email_body, se
         sender_alias (str): Enterprise Customer sender alias used as From Name.
     """
     config = get_braze_configuration(site_code)
-    endpoint = config.get('MESSAGES_SEND_ENDPOINT')
     try:
-        braze_client = get_braze_client(site_code, endpoint)
+        braze_client = get_braze_client(site_code)
         braze_client.send_message(
             email_ids=list(user_email),
             subject=subject,
@@ -614,9 +612,8 @@ def _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_co
         site_code (str): Identifier of the site sending the email.
     """
     config = get_braze_configuration(site_code)
-    endpoint = config.get('MESSAGES_SEND_ENDPOINT')
     try:
-        braze_client = get_braze_client(site_code, endpoint)
+        braze_client = get_braze_client(site_code)
         braze_client.send_message(
             email_ids=list(emails),
             subject=subject,
@@ -692,9 +689,8 @@ def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body
         site_code (str): Identifier of the site sending the email.
     """
     config = get_braze_configuration(site_code)
-    endpoint = config.get('MESSAGES_SEND_ENDPOINT')
     try:
-        braze_client = get_braze_client(site_code, endpoint)
+        braze_client = get_braze_client(site_code)
         braze_client.send_message(
             email_ids=list(email),
             subject=subject,

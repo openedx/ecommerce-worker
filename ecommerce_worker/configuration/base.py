@@ -76,9 +76,12 @@ BRAZE = {
     'BRAZE_ENABLE': False,
     'BRAZE_REST_API_KEY': None,
     'BRAZE_WEBAPP_API_KEY': None,
+    'EMAIL_TEMPLATE_ID': '',
     'REST_API_URL': 'https://rest.iad-06.braze.com',
     'MESSAGES_SEND_ENDPOINT': '/messages/send',
     'EMAIL_BOUNCE_ENDPOINT': '/email/hard_bounces',
+    'NEW_ALIAS_ENDPOINT': '/users/alias/new',
+    'USERS_TRACK_ENDPOINT': '/users/track',
     'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
     # Retry settings for Braze celery tasks
     'BRAZE_RETRY_SECONDS': 3600,
