@@ -1022,6 +1022,9 @@ class SendOfferEmailsTestsWithBraze(TestCase):
                 'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
                 'REST_API_URL': 'https://rest.iad-06.braze.com',
                 'MESSAGES_SEND_ENDPOINT': '/messages/send',
+                'EMAIL_BOUNCE_ENDPOINT': '/email/hard_bounces',
+                'NEW_ALIAS_ENDPOINT': '/users/alias/new',
+                'USERS_TRACK_ENDPOINT': '/users/track',
                 'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
                 'BRAZE_RETRY_SECONDS': 3600,
                 'BRAZE_RETRY_ATTEMPTS': 6,
@@ -1077,6 +1080,23 @@ class SendOfferEmailsTestsWithBraze(TestCase):
             ),
             status=status,
             body=json.dumps(body), content_type='application/json',
+        )
+
+    def mock_braze_user_endpoints(self):
+        """ Mock POST requests to the user alias and track endpoints. """
+        host = 'https://rest.iad-06.braze.com/users/track'
+        responses.add(
+            responses.POST,
+            host,
+            json={'message': 'success'},
+            status=201
+        )
+        host = 'https://rest.iad-06.braze.com/users/alias/new'
+        responses.add(
+            responses.POST,
+            host,
+            json={'message': 'success'},
+            status=201
         )
 
     @patch('ecommerce_worker.sailthru.v1.tasks.get_braze_client', Mock(side_effect=BrazeError))
@@ -1138,6 +1158,7 @@ class SendOfferEmailsTestsWithBraze(TestCase):
     @ddt.unpack
     def test_api_429_error_with_retry(self, task, task_kwargs):
         """ Verify the task is rescheduled if an API error occurs, and the request can be retried. """
+        self.mock_braze_user_endpoints()
         failure_response = {
             'message': 'Not a Success',
             'status_code': 429
@@ -1166,6 +1187,7 @@ class SendOfferEmailsTestsWithBraze(TestCase):
     @ddt.unpack
     def test_api_500_error_with_retry(self, task, task_kwargs):
         """ Verify 500 error triggers a request retry. """
+        self.mock_braze_user_endpoints()
         failure_response = {
             'message': 'Not a Success',
             'status_code': 500
@@ -1195,6 +1217,7 @@ class SendOfferEmailsTestsWithBraze(TestCase):
         """
         Test the happy path.
         """
+        self.mock_braze_user_endpoints()
         success_response = {
             "dispatch_id": "66cdc28f8f082bc3074c0c79f",
             "errors": [],
@@ -1217,6 +1240,7 @@ class SendOfferEmailsTestsWithBraze(TestCase):
     @patch('ecommerce_worker.sailthru.v1.tasks._update_assignment_email_status')
     def test_message_sent(self, mock_update_assignment):
         """ Verify a message is logged after a successful API call to send the message. """
+        self.mock_braze_user_endpoints()
         success_response = {
             'dispatch_id': '66cdc28f8f082bc3074c0c79f',
             'errors': [],
@@ -1245,6 +1269,7 @@ class SendOfferEmailsTestsWithBraze(TestCase):
     @patch('ecommerce_worker.utils.get_ecommerce_client')
     def test_update_assignment_exception(self, mock_get_ecommerce_client):
         """ Verify a message is logged after an unsuccessful API call to update the status. """
+        self.mock_braze_user_endpoints()
         success_response = {
             'dispatch_id': '66cdc28f8f082bc3074c0c79f',
             'errors': [],
