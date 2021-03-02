@@ -677,7 +677,7 @@ def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
         _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site_code)
 
 
-def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, site_code=None):
+def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, site_code=None):
     """
     Sends the code assignment nudge email via braze.
 
@@ -686,6 +686,7 @@ def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body
         email (str): Recipient's email address.
         subject (str): Email subject.
         email_body (str): The body of the email.
+        sender_alias (str): Enterprise Customer sender alias used as From Name.
         site_code (str): Identifier of the site sending the email.
     """
     config = get_braze_configuration(site_code)
@@ -695,6 +696,7 @@ def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body
             email_ids=list(email),
             subject=subject,
             body=email_body,
+            sender_alias=sender_alias
         )
     except (BrazeRateLimitError, BrazeInternalServerError):
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
@@ -706,7 +708,7 @@ def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body
         )
 
 
-def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, site_code=None):
+def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, sender_alias, site_code=None):
     """
     Sends the code assignment nudge email via sailthru.
 
@@ -715,6 +717,7 @@ def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_b
         email (str): Recipient's email address.
         subject (str): Email subject.
         email_body (str): The body of the email.
+        sender_alias (str): Enterprise Customer sender alias used as From Name.
         site_code (str): Identifier of the site sending the email.
     """
     config = get_sailthru_configuration(site_code)
@@ -724,7 +727,7 @@ def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_b
         email_vars={
             'subject': subject,
             'email_body': email_body,
-            'sender_alias': 'edX Support Team',
+            'sender_alias': sender_alias,
         },
         logger_prefix='Code Assignment Nudge Email',
         site_code=site_code,
@@ -736,7 +739,7 @@ def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_b
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_code_assignment_nudge_email(self, email, subject, email_body, site_code=None):
+def send_code_assignment_nudge_email(self, email, subject, email_body, sender_alias, site_code=None):
     """
     Sends the code assignment nudge email.
 
@@ -745,11 +748,12 @@ def send_code_assignment_nudge_email(self, email, subject, email_body, site_code
         email (str): Recipient's email address.
         subject (str): Email subject.
         email_body (str): The body of the email.
+        sender_alias (str): Enterprise Customer sender alias used as From Name.
         site_code (str): Identifier of the site sending the email.
     """
     config = get_braze_configuration(site_code)
     braze_enable = config.get('BRAZE_ENABLE')
     if braze_enable:
-        _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, site_code)
+        _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, site_code)
     else:
-        _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, site_code)
+        _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, sender_alias, site_code)

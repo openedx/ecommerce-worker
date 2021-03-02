@@ -1061,6 +1061,7 @@ class SendOfferEmailsTestsWithBraze(TestCase):
         'email': USER_EMAIL,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
+        'sender_alias': SENDER_ALIAS,
         'site_code': 'test'
     }
 
