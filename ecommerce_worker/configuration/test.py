@@ -49,7 +49,6 @@ BRAZE.update({
     'BRAZE_ENABLE': False,
     'BRAZE_REST_API_KEY': 'rest_api_key',
     'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
-    'EMAIL_TEMPLATE_ID': 'email_template_id',
 })
 
 # Sailthru support unit test settings with override

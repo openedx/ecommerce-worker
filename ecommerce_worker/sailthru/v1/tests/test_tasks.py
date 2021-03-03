@@ -1026,6 +1026,9 @@ class SendOfferEmailsTestsWithBraze(TestCase):
                 'EMAIL_BOUNCE_ENDPOINT': '/email/hard_bounces',
                 'NEW_ALIAS_ENDPOINT': '/users/alias/new',
                 'USERS_TRACK_ENDPOINT': '/users/track',
+                'EXPORT_ID_ENDPOINT': '/users/export/ids',
+                'CAMPAIGN_SEND_ENDPOINT': '/campaigns/trigger/send',
+                'ENTERPRISE_CAMPAIGN_ID': '',
                 'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
                 'BRAZE_RETRY_SECONDS': 3600,
                 'BRAZE_RETRY_ATTEMPTS': 6,
@@ -1098,6 +1101,13 @@ class SendOfferEmailsTestsWithBraze(TestCase):
             responses.POST,
             host,
             json={'message': 'success'},
+            status=201
+        )
+        host = 'https://rest.iad-06.braze.com/users/export/ids'
+        responses.add(
+            responses.POST,
+            host,
+            json={"users": [], "message": "success"},
             status=201
         )
 
