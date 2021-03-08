@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 
+import json
 import requests
 
 from urllib.parse import urlencode, urljoin
@@ -150,8 +151,9 @@ class BrazeClient(object):
         Returns:
             response (dict): The response object
         """
+        message_body = json.dumps(body)
         response = {'errors': []}
-        r = self._post_request(body, endpoint)
+        r = self._post_request(message_body, endpoint)
         response.update(r.json())
         response['status_code'] = r.status_code
 
@@ -177,7 +179,7 @@ class BrazeClient(object):
         self.session.headers.update(
             {"Authorization": u"Bearer {}".format(self.rest_api_key), "Content-Type": "application/json"}
         )
-        r = self.session.post(urljoin(self.rest_api_url, endpoint), json=body, timeout=2)
+        r = self.session.post(urljoin(self.rest_api_url, endpoint), data=body, timeout=2)
         if r.status_code == 429:
             reset_epoch_s = float(r.headers.get("X-RateLimit-Reset", 0))
             raise BrazeRateLimitError(reset_epoch_s)
@@ -258,27 +260,27 @@ class BrazeClient(object):
         for recipient_email in recipient_emails:
             if not self.get_braze_external_id(recipient_email):
                 user_alias = {
-                    "alias_name": "Enterprise",
-                    "alias_label": recipient_email
+                    'alias_name': 'Enterprise',
+                    'alias_label': recipient_email
                 }
                 user_aliases.append(user_alias)
                 attribute = {
-                    "user_alias": {
-                        "alias_name": "Enterprise",
-                        "alias_label": recipient_email
+                    'user_alias': {
+                        'alias_name': 'Enterprise',
+                        'alias_label': recipient_email
                     },
-                    "email": recipient_email,
-                    "is_enterprise_learner": "true"
+                    'email': recipient_email,
+                    'is_enterprise_learner': 'true'
                 }
                 attributes.append(attribute)
 
         alias_message = {
-            "user_aliases": user_aliases,
+            'user_aliases': user_aliases,
         }
         self.__create_post_request(alias_message, self.new_alias_endpoint)
 
         attribute_message = {
-            "attributes": attributes
+            'attributes': attributes
         }
         self.__create_post_request(attribute_message, self.users_track_endpoint)
 
@@ -332,21 +334,21 @@ class BrazeClient(object):
                 external_ids.append(str(external_id))
             else:
                 user_alias = {
-                    "alias_name": "Enterprise",
-                    "alias_label": email_id
+                    'alias_name': 'Enterprise',
+                    'alias_label': email_id
                 }
                 user_aliases.append(user_alias)
         email = {
-            "app_id": self.webapp_api_key,
-            "subject": subject,
-            "from": sender_alias + self.from_email,
-            "body": body,
+            'app_id': self.webapp_api_key,
+            'subject': subject,
+            'from': sender_alias + self.from_email,
+            'body': body,
         }
         message = {
-            "user_aliases": user_aliases,
-            "external_user_ids": external_ids,
-            "messages": {
-                "email": email
+            'user_aliases': user_aliases,
+            'external_user_ids': external_ids,
+            'messages': {
+                'email': email
             }
         }
         return self.__create_post_request(message, self.messages_send_endpoint)
@@ -367,7 +369,7 @@ class BrazeClient(object):
         if not email_id:
             raise BrazeClientError('Missing parameters for Braze email')
         parameters = {
-            "email": email_id
+            'email': email_id
         }
 
         response = self.__create_get_request(parameters, self.email_bounce_endpoint)
@@ -431,21 +433,21 @@ class BrazeClient(object):
             raise BrazeClientError('Missing parameters for Braze email')
         result = {}
         for email_id in email_ids:
-            send_to_existing_only = "true" if self.get_braze_external_id(email_id) else "false"
+            send_to_existing_only = True if self.get_braze_external_id(email_id) else False
             message = {
-                "campaign_id": campaign_id,
-                "recipients": [
+                'campaign_id': campaign_id,
+                'recipients': [
                     {
-                        "external_user_id": "Enterprise-{}".format(email_id),
-                        "trigger_properties": {
-                            "sender_alias": sender_alias,
-                            "subject": subject,
-                            "body": body
+                        'external_user_id': 'Enterprise-{}'.format(email_id),
+                        'trigger_properties': {
+                            'sender_alias': sender_alias,
+                            'subject': subject,
+                            'body': body
                         },
-                        "send_to_existing_only": send_to_existing_only,
-                        "attributes":
+                        'send_to_existing_only': send_to_existing_only,
+                        'attributes':
                             {
-                                "email": email_id
+                                'email': email_id
                             }
                     }
                 ]
@@ -470,12 +472,11 @@ class BrazeClient(object):
         if not email_id:
             raise BrazeClientError('Missing parameters for Braze account check.')
         message = {
-            "email_address": email_id,
-            "fields_to_export": ["external_id", "email"]
+            'email_address': email_id,
+            'fields_to_export': ['external_id']
         }
         response = self.__create_post_request(message, self.export_id_endpoint)
-
-        if response["users"]:
+        if response["users"] and 'external_id' in response["users"][0]:
             return response["users"][0]["external_id"]
 
         return None

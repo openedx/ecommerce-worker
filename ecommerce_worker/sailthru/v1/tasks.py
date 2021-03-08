@@ -380,9 +380,10 @@ def _send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id
     """
     config = get_braze_configuration(site_code)
     try:
+        user_emails = [user_email]
         braze_client = get_braze_client(site_code)
         response = braze_client.send_message(
-            email_ids=list(user_email),
+            email_ids=user_emails,
             subject=subject,
             body=email_body,
             sender_alias=sender_alias
@@ -532,9 +533,10 @@ def _send_offer_update_email_via_braze(self, user_email, subject, email_body, se
     """
     config = get_braze_configuration(site_code)
     try:
+        user_emails = [user_email]
         braze_client = get_braze_client(site_code)
         braze_client.send_message(
-            email_ids=list(user_email),
+            email_ids=user_emails,
             subject=subject,
             body=email_body,
             sender_alias=sender_alias
@@ -613,9 +615,10 @@ def _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_co
     """
     config = get_braze_configuration(site_code)
     try:
+        user_emails = list(emails.strip().split(","))
         braze_client = get_braze_client(site_code)
         braze_client.send_message(
-            email_ids=list(emails),
+            email_ids=user_emails,
             subject=subject,
             body=email_body
         )
@@ -691,9 +694,10 @@ def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body
     """
     config = get_braze_configuration(site_code)
     try:
+        user_emails = [email]
         braze_client = get_braze_client(site_code)
         braze_client.send_message(
-            email_ids=list(email),
+            email_ids=user_emails,
             subject=subject,
             body=email_body,
             sender_alias=sender_alias

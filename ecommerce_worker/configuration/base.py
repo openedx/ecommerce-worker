@@ -84,7 +84,7 @@ BRAZE = {
     'EXPORT_ID_ENDPOINT': '/users/export/ids',
     'CAMPAIGN_SEND_ENDPOINT': '/campaigns/trigger/send',
     'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
-    'OFFER_CAMPAIGN_ID': '',
+    'ENTERPRISE_CAMPAIGN_ID': '',
     # Retry settings for Braze celery tasks
     'BRAZE_RETRY_SECONDS': 3600,
     'BRAZE_RETRY_ATTEMPTS': 6,
