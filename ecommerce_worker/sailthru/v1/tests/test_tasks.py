@@ -713,12 +713,14 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         'user_email': USER_EMAIL,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
+        'base_enterprise_url': BASE_ENTERPRISE_URL,
         'sender_alias': SENDER_ALIAS,
     }
 
     USAGE_TASK_KWARGS = {
         'emails': EMAILS,
         'subject': SUBJECT,
+        'base_enterprise_url': BASE_ENTERPRISE_URL,
         'email_body': EMAIL_BODY,
     }
 
@@ -726,6 +728,7 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         'email': USER_EMAIL,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
+        'base_enterprise_url': BASE_ENTERPRISE_URL,
         'sender_alias': SENDER_ALIAS,
     }
 

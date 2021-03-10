@@ -551,7 +551,7 @@ def _send_offer_update_email_via_braze(self, user_email, subject, email_body, se
         )
 
 
-def _send_offer_update_email_via_sailthru(self, user_email, subject, email_body, sender_alias, site_code=None):
+def _send_offer_update_email_via_sailthru(self, user_email, subject, email_body, sender_alias, site_code=None, base_enterprise_url=''):
     """
     Sends the offer emails after assignment via sailthru, either for revoking or reminding.
 
@@ -571,6 +571,7 @@ def _send_offer_update_email_via_sailthru(self, user_email, subject, email_body,
             'subject': subject,
             'email_body': email_body,
             'sender_alias': sender_alias,
+            'base_enterprise_url': base_enterprise_url
         },
         logger_prefix='Offer Assignment',
         site_code=site_code,
@@ -582,7 +583,7 @@ def _send_offer_update_email_via_sailthru(self, user_email, subject, email_body,
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_update_email(self, user_email, subject, email_body, sender_alias, site_code=None):
+def send_offer_update_email(self, user_email, subject, email_body, sender_alias, site_code=None, base_enterprise_url=''):
     """
     Sends the offer emails after assignment, either for revoking or reminding.
 
@@ -593,16 +594,17 @@ def send_offer_update_email(self, user_email, subject, email_body, sender_alias,
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
+        base_enterprise_url (str): Enterprise learner portal url.
     """
     config = get_braze_configuration(site_code)
     braze_enable = config.get('BRAZE_ENABLE')
     if braze_enable:
         _send_offer_update_email_via_braze(self, user_email, subject, email_body, sender_alias, site_code)
     else:
-        _send_offer_update_email_via_sailthru(self, user_email, subject, email_body, sender_alias, site_code)
+        _send_offer_update_email_via_sailthru(self, user_email, subject, email_body, sender_alias, site_code, base_enterprise_url)
 
 
-def _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_code=None):
+def _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_code=None, base_enterprise_url=''):
     """
     Sends the offer usage email via braze.
 
@@ -632,7 +634,7 @@ def _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_co
         )
 
 
-def _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site_code=None):
+def _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site_code=None, base_enterprise_url=''):
     """
     Sends the offer usage email via sailthru.
 
@@ -642,6 +644,7 @@ def _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site
         subject (str): Email subject.
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
+        base_enterprise_url (str): Url for the enterprise's learner portal
     """
     config = get_sailthru_configuration(site_code)
     notification = Notification(
@@ -649,11 +652,12 @@ def _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site
         emails=emails,
         email_vars={
             'subject': subject,
-            'email_body': email_body
+            'email_body': email_body,
+            'base_enteprise_url': base_enterprise_url
         },
         logger_prefix='Offer Usage',
         site_code=site_code,
-        template='assignment_email'
+        template='assignment_email',
     )
     _, is_eligible_for_retry = notification.send(is_multi_send=True)
     if is_eligible_for_retry:
@@ -661,7 +665,7 @@ def _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
+def send_offer_usage_email(self, emails, subject, email_body, site_code=None, base_enterprise_url=''):
     """
     Sends the offer usage email.
 
@@ -671,13 +675,14 @@ def send_offer_usage_email(self, emails, subject, email_body, site_code=None):
         subject (str): Email subject.
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
+        base_enterprise_url (str): Url of the enterprise's learner portal
     """
     config = get_braze_configuration(site_code)
     braze_enable = config.get('BRAZE_ENABLE')
     if braze_enable:
         _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_code)
     else:
-        _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site_code)
+        _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site_code, base_enterprise_url)
 
 
 def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, site_code=None):
@@ -712,7 +717,7 @@ def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body
         )
 
 
-def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, sender_alias, site_code=None):
+def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, sender_alias, site_code=None, base_enterprise_url=''):
     """
     Sends the code assignment nudge email via sailthru.
 
@@ -723,6 +728,7 @@ def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_b
         email_body (str): The body of the email.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
         site_code (str): Identifier of the site sending the email.
+        base_enterprise_url (str): Enterprise learner portal url
     """
     config = get_sailthru_configuration(site_code)
     notification = Notification(
@@ -732,6 +738,7 @@ def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_b
             'subject': subject,
             'email_body': email_body,
             'sender_alias': sender_alias,
+            'base_enteprise_url': base_enterprise_url,
         },
         logger_prefix='Code Assignment Nudge Email',
         site_code=site_code,
@@ -743,7 +750,7 @@ def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_b
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_code_assignment_nudge_email(self, email, subject, email_body, sender_alias, site_code=None):
+def send_code_assignment_nudge_email(self, email, subject, email_body, sender_alias, site_code=None, base_enterprise_url=''):
     """
     Sends the code assignment nudge email.
 
@@ -754,10 +761,11 @@ def send_code_assignment_nudge_email(self, email, subject, email_body, sender_al
         email_body (str): The body of the email.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
         site_code (str): Identifier of the site sending the email.
+        base_enterprise_url (str): Enterprise learner portal url.
     """
     config = get_braze_configuration(site_code)
     braze_enable = config.get('BRAZE_ENABLE')
     if braze_enable:
         _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, site_code)
     else:
-        _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, sender_alias, site_code)
+        _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, sender_alias, site_code, base_enterprise_url)
