@@ -485,7 +485,14 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
             self, user_email, offer_assignment_id, subject, email_body, sender_alias, site_code, base_enterprise_url)
     else:
         _send_offer_assignment_email_via_sailthru(
-            self, user_email, offer_assignment_id, subject, email_body, sender_alias, site_code, base_enterprise_url)
+            self, user_email,
+            offer_assignment_id,
+            subject,
+            email_body,
+            sender_alias,
+            site_code=site_code,
+            base_enterprise_url=base_enterprise_url
+        )
 
 
 def _update_assignment_email_status(offer_assignment_id, send_id, status, site_code=None):
@@ -601,10 +608,17 @@ def send_offer_update_email(self, user_email, subject, email_body, sender_alias,
     if braze_enable:
         _send_offer_update_email_via_braze(self, user_email, subject, email_body, sender_alias, site_code)
     else:
-        _send_offer_update_email_via_sailthru(self, user_email, subject, email_body, sender_alias, site_code, base_enterprise_url)
+        _send_offer_update_email_via_sailthru(self,
+            user_email,
+            subject,
+            email_body,
+            sender_alias,
+            site_code=site_code,
+            base_enterprise_url=base_enterprise_url
+        )
 
 
-def _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_code=None, base_enterprise_url=''):
+def _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_code=None):
     """
     Sends the offer usage email via braze.
 
@@ -682,7 +696,14 @@ def send_offer_usage_email(self, emails, subject, email_body, site_code=None, ba
     if braze_enable:
         _send_offer_usage_email_via_braze(self, emails, subject, email_body, site_code)
     else:
-        _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site_code, base_enterprise_url)
+        _send_offer_usage_email_via_sailthru(
+            self,
+            emails,
+            subject,
+            email_body,
+            site_code=site_code,
+            base_enterprise_url=base_enterprise_url
+        )
 
 
 def _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, site_code=None):
@@ -768,4 +789,11 @@ def send_code_assignment_nudge_email(self, email, subject, email_body, sender_al
     if braze_enable:
         _send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, site_code)
     else:
-        _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_body, sender_alias, site_code, base_enterprise_url)
+        _send_code_assignment_nudge_email_via_sailthru(self,
+            email,
+            subject,
+            email_body,
+            sender_alias,
+            site_code=site_code,
+            base_enterprise_url=base_enterprise_url
+        )
