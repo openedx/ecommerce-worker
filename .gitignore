@@ -71,3 +71,6 @@ private.py
 
 # pyenv
 .python-version
+
+# virtual env
+.venv/
