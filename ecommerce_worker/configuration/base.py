@@ -127,7 +127,6 @@ SAILTHRU = {
 
     # Transactional email template name map
     'templates': {
-        'course_refund': 'Course Refund',
         'assignment_email': 'Offer Assignment Email',
         'enterprise_portal_email': 'Enterprise Portal Email',
     }
