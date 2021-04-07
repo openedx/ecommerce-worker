@@ -32,6 +32,7 @@ from ecommerce_worker.sailthru.v1.tasks import (
     send_offer_update_email,
     send_offer_usage_email,
 )
+from ecommerce_worker.sailthru.v1.constants import BASE_ENTERPRISE_URL_VAR_NAME
 from ecommerce_worker.utils import get_configuration
 
 TEST_EMAIL = "test@edx.org"
@@ -294,7 +295,7 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         'offer_assignment_id': OFFER_ASSIGNMENT_ID,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
-        'base_enterprise_url': BASE_ENTERPRISE_URL,
+        BASE_ENTERPRISE_URL_VAR_NAME: BASE_ENTERPRISE_URL,
         'sender_alias': SENDER_ALIAS,
     }
 
@@ -302,14 +303,14 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         'user_email': USER_EMAIL,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
-        'base_enterprise_url': BASE_ENTERPRISE_URL,
+        BASE_ENTERPRISE_URL_VAR_NAME: BASE_ENTERPRISE_URL,
         'sender_alias': SENDER_ALIAS,
     }
 
     USAGE_TASK_KWARGS = {
         'emails': EMAILS,
         'subject': SUBJECT,
-        'base_enterprise_url': BASE_ENTERPRISE_URL,
+        BASE_ENTERPRISE_URL_VAR_NAME: BASE_ENTERPRISE_URL,
         'email_body': EMAIL_BODY,
     }
 
@@ -317,7 +318,7 @@ class SendOfferEmailsTests(BaseSendEmailTests):
         'email': USER_EMAIL,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
-        'base_enterprise_url': BASE_ENTERPRISE_URL,
+        BASE_ENTERPRISE_URL_VAR_NAME: BASE_ENTERPRISE_URL,
         'sender_alias': SENDER_ALIAS,
     }
 
@@ -633,7 +634,7 @@ class SendOfferEmailsTestsWithBraze(TestCase):
         'offer_assignment_id': OFFER_ASSIGNMENT_ID,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
-        'base_enterprise_url': BASE_ENTERPRISE_URL,
+        BASE_ENTERPRISE_URL_VAR_NAME: BASE_ENTERPRISE_URL,
         'sender_alias': SENDER_ALIAS,
         'site_code': 'test'
     }
