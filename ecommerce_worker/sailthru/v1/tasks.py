@@ -17,6 +17,7 @@ from ecommerce_worker.braze.v1.client import get_braze_client, get_braze_configu
 from ecommerce_worker.braze.v1.exceptions import BrazeError, BrazeRateLimitError, BrazeInternalServerError
 from ecommerce_worker.sailthru.v1.exceptions import SailthruError
 from ecommerce_worker.sailthru.v1.notification import Notification
+from ecommerce_worker.sailthru.v1.constants import BASE_ENTERPRISE_URL_VAR_NAME
 from ecommerce_worker.sailthru.v1.utils import (
     can_retry_sailthru_request,
     get_sailthru_client,
@@ -292,7 +293,7 @@ def _send_offer_assignment_email_via_sailthru(self, user_email, offer_assignment
         email_vars={
             'subject': subject,
             'email_body': email_body,
-            'base_enterprise_url': base_enterprise_url,
+            BASE_ENTERPRISE_URL_VAR_NAME: base_enterprise_url,
             'sender_alias': sender_alias,
         },
         logger_prefix='Offer Assignment',
@@ -436,7 +437,7 @@ def _send_offer_update_email_via_sailthru(self, user_email, subject, email_body,
             'subject': subject,
             'email_body': email_body,
             'sender_alias': sender_alias,
-            'base_enterprise_url': base_enterprise_url
+            BASE_ENTERPRISE_URL_VAR_NAME: base_enterprise_url
         },
         logger_prefix='Offer Assignment',
         site_code=site_code,
@@ -525,7 +526,7 @@ def _send_offer_usage_email_via_sailthru(self, emails, subject, email_body, site
         email_vars={
             'subject': subject,
             'email_body': email_body,
-            'base_enteprise_url': base_enterprise_url
+            BASE_ENTERPRISE_URL_VAR_NAME: base_enterprise_url
         },
         logger_prefix='Offer Usage',
         site_code=site_code,
@@ -617,7 +618,7 @@ def _send_code_assignment_nudge_email_via_sailthru(self, email, subject, email_b
             'subject': subject,
             'email_body': email_body,
             'sender_alias': sender_alias,
-            'base_enteprise_url': base_enterprise_url,
+            BASE_ENTERPRISE_URL_VAR_NAME: base_enterprise_url,
         },
         logger_prefix='Code Assignment Nudge Email',
         site_code=site_code,

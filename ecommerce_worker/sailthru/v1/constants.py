@@ -1,0 +1,1 @@
+BASE_ENTERPRISE_URL_VAR_NAME='base_enterprise_url'
