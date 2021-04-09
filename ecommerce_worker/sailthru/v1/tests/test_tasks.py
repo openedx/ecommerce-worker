@@ -860,7 +860,7 @@ class SendOfferEmailsTestsWithBraze(TestCase):
             status=201)
         with LogCapture(level=logging.INFO) as log:
             self.execute_task()
-        log.check(
+        log.check_present(
             (
                 self.LOG_TASK_NAME,
                 'INFO',
@@ -890,7 +890,7 @@ class SendOfferEmailsTestsWithBraze(TestCase):
         mock_get_ecommerce_client.side_effect = RequestException
         with LogCapture(level=logging.INFO) as log:
             self.execute_task()
-        log.check(
+        log.check_present(
             (
                 self.LOG_TASK_NAME,
                 'ERROR',

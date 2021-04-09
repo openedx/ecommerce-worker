@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 
+import copy
 import json
 import requests
 
@@ -351,6 +352,14 @@ class BrazeClient(object):
                 'email': email
             }
         }
+        # Scrub the app_id from the log message
+        cleaned_message = copy.copy(message)
+        cleaned_app_id = '{}...{}'.format(cleaned_message['messages']['email']['app_id'][0:4],
+                                          cleaned_message['messages']['email']['app_id'][-4:])
+        cleaned_message['messages']['email']['app_id'] = cleaned_app_id
+        log.info(
+            '[ECOMM-WORKER-BRAZE] Message: [%s], URL: [%s]', str(cleaned_message), str(self.messages_send_endpoint)
+        )
         return self.__create_post_request(message, self.messages_send_endpoint)
 
     def did_email_bounce(
