@@ -278,12 +278,14 @@ class BrazeClient(object):
         alias_message = {
             'user_aliases': user_aliases,
         }
-        self.__create_post_request(alias_message, self.new_alias_endpoint)
+        if user_aliases:
+            self.__create_post_request(alias_message, self.new_alias_endpoint)
 
         attribute_message = {
             'attributes': attributes
         }
-        self.__create_post_request(attribute_message, self.users_track_endpoint)
+        if attributes:
+            self.__create_post_request(attribute_message, self.users_track_endpoint)
 
     def send_message(
         self,
@@ -353,7 +355,7 @@ class BrazeClient(object):
             }
         }
         # Scrub the app_id from the log message
-        cleaned_message = copy.copy(message)
+        cleaned_message = copy.deepcopy(message)
         cleaned_app_id = '{}...{}'.format(cleaned_message['messages']['email']['app_id'][0:4],
                                           cleaned_message['messages']['email']['app_id'][-4:])
         cleaned_message['messages']['email']['app_id'] = cleaned_app_id
