@@ -1,6 +1,3 @@
-
-# This project is under merge-freeze until 26 April 2021, review by @revenue-team will be required until then.
-
 **Merge checklist:**
 - [ ] Any new requirements are in the right place (do **not** manually modify the `requirements/*.txt` files)
     - `base.in` if needed in production
