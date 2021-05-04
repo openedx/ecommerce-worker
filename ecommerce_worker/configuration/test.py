@@ -32,27 +32,3 @@ ECOMMERCE_SERVICE_USERNAME = 'service'
 
 # SITE-SPECIFIC CONFIGURATION OVERRIDES
 SITE_OVERRIDES = {}
-
-# Sailthru support unit test settings
-SAILTHRU.update({
-    'SAILTHRU_ENABLE': True,
-    'SAILTHRU_UPGRADE_TEMPLATE': 'upgrade_template',
-    'SAILTHRU_PURCHASE_TEMPLATE': 'purchase_template',
-    'SAILTHRU_ENROLL_TEMPLATE': 'enroll_template',
-    'SAILTHRU_ABANDONED_CART_TEMPLATE': 'abandoned_template',
-    'SAILTHRU_KEY': 'key',
-    'SAILTHRU_SECRET': 'secret',
-})
-
-# Braze unit test settings
-BRAZE.update({
-    'BRAZE_ENABLE': False,
-    'BRAZE_REST_API_KEY': 'rest_api_key',
-    'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
-})
-
-# Sailthru support unit test settings with override
-TEST_SITE_OVERRIDES = {
-    'test_site': { 'SAILTHRU': dict(SAILTHRU,
-                                    SAILTHRU_UPGRADE_TEMPLATE='site_upgrade_template')}
-}

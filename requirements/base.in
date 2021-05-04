@@ -3,5 +3,4 @@
 celery
 edx-rest-api-client
 redis
-sailthru-client
 six
