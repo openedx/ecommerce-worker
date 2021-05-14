@@ -49,7 +49,7 @@ class OrderFulfillmentTaskTests(TestCase):
         # Validate the value of the HTTP Authorization header.
         last_request = responses.calls[-1].request
         token = last_request.headers.get('authorization').split()[1]
-        payload = jwt.decode(token, get_configuration('JWT_SECRET_KEY'))
+        payload = jwt.decode(token, get_configuration('JWT_SECRET_KEY'), algorithms=['HS256'])
         self.assertEqual(payload['username'], get_configuration('ECOMMERCE_SERVICE_USERNAME'))
 
     @responses.activate

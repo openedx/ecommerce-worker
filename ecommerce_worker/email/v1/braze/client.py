@@ -1,18 +1,15 @@
 """
-    Braze Client functions.
+Braze Client functions.
 """
 
-from __future__ import absolute_import
+from urllib.parse import urlencode, urljoin
 
 import copy
 import json
 import requests
-
-from urllib.parse import urlencode, urljoin
-
 from celery.utils.log import get_task_logger
 
-from ecommerce_worker.braze.v1.exceptions import (
+from ecommerce_worker.email.v1.braze.exceptions import (
     ConfigurationError,
     BrazeNotEnabled,
     BrazeClientError,
@@ -22,6 +19,11 @@ from ecommerce_worker.braze.v1.exceptions import (
 from ecommerce_worker.utils import get_configuration
 
 log = get_task_logger(__name__)
+
+
+def is_braze_enabled(site_code) -> bool:
+    config = get_braze_configuration(site_code)
+    return bool(config.get('BRAZE_ENABLE'))
 
 
 def get_braze_configuration(site_code):
