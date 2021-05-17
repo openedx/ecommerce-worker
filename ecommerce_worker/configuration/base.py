@@ -21,7 +21,7 @@ CELERY_RESULT_BACKEND = None
 # A sequence of modules to import when the worker starts.
 # See http://celery.readthedocs.org/en/4.0/userguide/configuration.html#std:setting-imports.
 CELERY_IMPORTS = (
-    'ecommerce_worker.email.v1.tasks',
+    'ecommerce_worker.email.v1.api',
     'ecommerce_worker.fulfillment.v1.tasks',
 )
 
