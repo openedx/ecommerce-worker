@@ -294,7 +294,8 @@ class BrazeClient(object):
         email_ids,
         subject,
         body,
-        sender_alias='EdX Support Team'
+        sender_alias='EdX Support Team',
+        reply_to='',
     ):
         """
         Sends the message via Braze Rest API /messages/send
@@ -304,6 +305,7 @@ class BrazeClient(object):
             subject (str): e.g. 'Test Subject'
             body (str): e.g. '<html>Test Html Message</html>'
             sender_alias (str): sender alias for email e.g. edX Support Team
+            reply_to (str): Enterprise Customer reply to address for email reply
 
         Request message format:
             Content-Type: application/json
@@ -316,6 +318,7 @@ class BrazeClient(object):
                             "app_id": "99999999-9999-9999-9999-999999999999",
                             "subject": "Testing",
                             "from": "edX <edx-for-business-no-reply@info.edx.org>",
+                            "reply_to": "reply@edx.org",
                             "body": "<html>Test</html>"
                         }
                     }
@@ -349,6 +352,8 @@ class BrazeClient(object):
             'from': sender_alias + self.from_email,
             'body': body,
         }
+        if reply_to:
+            email['reply_to'] = reply_to
         message = {
             'user_aliases': user_aliases,
             'external_user_ids': external_ids,

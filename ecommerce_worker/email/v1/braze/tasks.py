@@ -122,7 +122,7 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, site_cod
         )
 
 
-def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, site_code):
+def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, reply_to, site_code):
     """
     Sends the code assignment nudge email via braze.
 
@@ -132,6 +132,7 @@ def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body,
         subject (str): Email subject.
         email_body (str): The body of the email.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
+        reply_to (str): Enterprise Customer reply to address for email reply
         site_code (str): Identifier of the site sending the email.
     """
     config = get_braze_configuration(site_code)
@@ -142,7 +143,8 @@ def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body,
             email_ids=user_emails,
             subject=subject,
             body=email_body,
-            sender_alias=sender_alias
+            sender_alias=sender_alias,
+            reply_to=reply_to,
         )
     except (BrazeRateLimitError, BrazeInternalServerError):
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),

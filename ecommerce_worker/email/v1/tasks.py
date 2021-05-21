@@ -77,7 +77,7 @@ def send_offer_usage_email(self, emails, subject, email_body, site_code=None,
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_code_assignment_nudge_email(self, email, subject, email_body, sender_alias, site_code=None,
+def send_code_assignment_nudge_email(self, email, subject, email_body, sender_alias, reply_to='', site_code=None,
                                      base_enterprise_url='') -> None:
     """
     Sends the code assignment nudge email.
@@ -88,8 +88,9 @@ def send_code_assignment_nudge_email(self, email, subject, email_body, sender_al
         subject (str): Email subject.
         email_body (str): The body of the email.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
+        reply_to (str): Enterprise Customer reply to address for email reply
         site_code (str): Identifier of the site sending the email.
         base_enterprise_url (str): Enterprise learner portal url.
     """
     if is_braze_enabled(site_code):
-        send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, site_code)
+        send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, reply_to, site_code)
