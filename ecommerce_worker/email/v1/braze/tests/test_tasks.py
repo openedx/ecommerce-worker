@@ -36,7 +36,7 @@ class SendEmailsViaBrazeTests(TestCase):
     EMAIL_BODY = 'Template message with johndoe@unknown.com GIL7RUEOU7VHBH7Q ' \
                  'https://tempurl.url/enroll 3 2012-04-23'
     SENDER_ALIAS = 'edx Support Team'
-    REPLY_TO = 'no-reply@edx.org'
+    REPLY_TO = 'reply@edx.org'
     SITE_CODE = 'test'
     BRAZE_CONFIG = {
         'BRAZE_ENABLE': True,
@@ -61,6 +61,7 @@ class SendEmailsViaBrazeTests(TestCase):
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
         'sender_alias': SENDER_ALIAS,
+        'reply_to': REPLY_TO,
         'site_code': SITE_CODE,
     }
 
@@ -69,6 +70,7 @@ class SendEmailsViaBrazeTests(TestCase):
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
         'sender_alias': SENDER_ALIAS,
+        'reply_to': REPLY_TO,
         'site_code': SITE_CODE,
     }
 
@@ -76,6 +78,7 @@ class SendEmailsViaBrazeTests(TestCase):
         'emails': EMAILS,
         'subject': SUBJECT,
         'email_body': EMAIL_BODY,
+        'reply_to': REPLY_TO,
         'site_code': SITE_CODE,
     }
 
