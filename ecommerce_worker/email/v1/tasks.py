@@ -20,7 +20,7 @@ from ecommerce_worker.email.v1.braze.tasks import (
 
 @shared_task(bind=True, ignore_result=True)
 def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
-                                site_code=None, base_enterprise_url='') -> None:
+                                reply_to='', site_code=None, base_enterprise_url='') -> None:
     """
     Sends the offer assignment email.
 
@@ -33,14 +33,15 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
         site_code (str): Identifier of the site sending the email.
         base_enterprise_url (str): Url for the enterprise learner portal.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
+        reply_to (str): Enterprise Customer reply to address for email reply
     """
     if is_braze_enabled(site_code):
         send_offer_assignment_email_via_braze(
-            self, user_email, offer_assignment_id, subject, email_body, sender_alias, site_code)
+            self, user_email, offer_assignment_id, subject, email_body, sender_alias, reply_to, site_code)
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_update_email(self, user_email, subject, email_body, sender_alias, site_code=None,
+def send_offer_update_email(self, user_email, subject, email_body, sender_alias, reply_to='', site_code=None,
                             base_enterprise_url='') -> None:
     """
     Sends the offer emails after assignment, either for revoking or reminding.
@@ -52,14 +53,15 @@ def send_offer_update_email(self, user_email, subject, email_body, sender_alias,
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
+        reply_to (str): Enterprise Customer reply to address for email reply
         base_enterprise_url (str): Enterprise learner portal url.
     """
     if is_braze_enabled(site_code):
-        send_offer_update_email_via_braze(self, user_email, subject, email_body, sender_alias, site_code)
+        send_offer_update_email_via_braze(self, user_email, subject, email_body, sender_alias, reply_to, site_code)
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_usage_email(self, emails, subject, email_body, site_code=None,
+def send_offer_usage_email(self, emails, subject, email_body, reply_to='', site_code=None,
                            base_enterprise_url='') -> None:
     """
     Sends the offer usage email.
@@ -69,11 +71,12 @@ def send_offer_usage_email(self, emails, subject, email_body, site_code=None,
         emails (str): comma separated emails.
         subject (str): Email subject.
         email_body (str): The body of the email.
+        reply_to (str): Enterprise Customer reply to address for email reply
         site_code (str): Identifier of the site sending the email.
         base_enterprise_url (str): Url of the enterprise's learner portal
     """
     if is_braze_enabled(site_code):
-        send_offer_usage_email_via_braze(self, emails, subject, email_body, site_code)
+        send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to, site_code)
 
 
 @shared_task(bind=True, ignore_result=True)
