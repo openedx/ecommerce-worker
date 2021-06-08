@@ -17,6 +17,3 @@ celery<5.0
 
 # some other package are bringing django3.0 so adding constraint.
 Django<2.3
-
-# See https://openedx.atlassian.net/browse/BOM-2247 for details.
-pip-tools<6.0
