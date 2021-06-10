@@ -1,4 +1,5 @@
 """ Utility functions. """
+import string
 
 from requests.exceptions import RequestException
 
@@ -43,3 +44,16 @@ def did_email_bounce(user_email, site_code=None) -> bool:
         return client.did_email_bounce(user_email)
 
     return False
+
+
+def remove_special_characters_from_string(input_string):  # pylint: disable=invalid-name
+    """
+    Removes all special characters from the string passed as argument.
+    string.punctuation contains the following characters:  '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+
+    Args:
+        input_string (str): Input string from which special characters need to be removed.
+    """
+    if input_string:
+        return input_string.translate(str.maketrans('', '', string.punctuation))
+    return ''
