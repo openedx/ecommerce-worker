@@ -7,7 +7,11 @@ import json
 import responses
 from mock import patch
 
-from ecommerce_worker.email.v1.utils import did_email_bounce, update_assignment_email_status
+from ecommerce_worker.email.v1.utils import (
+    did_email_bounce,
+    remove_special_characters_from_string,
+    update_assignment_email_status,
+)
 from ecommerce_worker.utils import get_configuration
 
 
@@ -78,3 +82,17 @@ class EmailUtilsTests(TestCase):
         braze_client_mock.return_value.did_email_bounce.return_value = True
         bounced = did_email_bounce('email', 'site_code')
         assert bounced == braze_enabled
+
+    @ddt.data(
+        ('', ''),
+        ('EdX Support Team', 'EdX Support Team'),
+        ('ABC Mills, Inc. on edX', 'ABC Mills Inc on edX'),
+        ('A&B Enterprise, inc.', 'AB Enterprise inc'),
+    )
+    @ddt.unpack
+    def test_remove_special_characters_from_string(self, input_string, expected):
+        """
+        Test that the utility returns string with all special characters removed.
+        """
+        actual_string = remove_special_characters_from_string(input_string)
+        self.assertEqual(actual_string, expected)

@@ -331,11 +331,14 @@ class BrazeClient(object):
                     "message": "success"
                 }
         """
+        # To avoid circular import
+        from ecommerce_worker.email.v1.utils import remove_special_characters_from_string
         if not email_ids or not subject or not body:
             raise BrazeClientError('Missing parameters for Braze email')
         self.create_braze_alias(email_ids)
         user_aliases = []
         external_ids = []
+        sender_alias = remove_special_characters_from_string(sender_alias)
         for email_id in email_ids:
             external_id = self.get_braze_external_id(email_id)
             if external_id:
