@@ -296,6 +296,7 @@ class BrazeClient(object):
         body,
         sender_alias='EdX Support Team',
         reply_to='',
+        attachments=[],
     ):
         """
         Sends the message via Braze Rest API /messages/send
@@ -306,6 +307,7 @@ class BrazeClient(object):
             body (str): e.g. '<html>Test Html Message</html>'
             sender_alias (str): sender alias for email e.g. edX Support Team
             reply_to (str): Enterprise Customer reply to address for email reply
+            attachments (list): list of dicts with filename and url keys
 
         Request message format:
             Content-Type: application/json
@@ -319,7 +321,11 @@ class BrazeClient(object):
                             "subject": "Testing",
                             "from": "edX <edx-for-business-no-reply@info.edx.org>",
                             "reply_to": "reply@edx.org",
-                            "body": "<html>Test</html>"
+                            "body": "<html>Test</html>",
+                            "attachments": [
+                               { "file_name": "filename1", "url": "url1" },
+                               { "file_name": "filename2", "url": "url2" }
+                            ]
                         }
                     }
                 }
@@ -355,6 +361,8 @@ class BrazeClient(object):
             'from': sender_alias + self.from_email,
             'body': body,
         }
+        if attachments:
+            email['attachments'] = attachments
         if reply_to:
             email['reply_to'] = reply_to
         message = {

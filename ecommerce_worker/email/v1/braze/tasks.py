@@ -12,7 +12,7 @@ logger = get_task_logger(__name__)
 
 
 def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
-                                          reply_to, site_code):
+                                          reply_to, attachments, site_code):
     """
     Sends the offer assignment email via Braze.
 
@@ -23,9 +23,9 @@ def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id,
         subject (str): Email subject.
         email_body (str): The body of the email.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
-        reply_to (str): Enterprise Customer reply to address for email reply
+        reply_to (str): Enterprise Customer reply to address for email reply.
+        attachments (list): File attachment list with dicts having 'file_name' and 'url' keys.
         site_code (str): Identifier of the site sending the email.
-        base_enterprise_url (str): Url for the enterprise learner portal.
     """
     config = get_braze_configuration(site_code)
     try:
@@ -36,7 +36,8 @@ def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id,
             subject=subject,
             body=email_body,
             sender_alias=sender_alias,
-            reply_to=reply_to
+            reply_to=reply_to,
+            attachments=attachments
         )
         if response and response['success']:
             dispatch_id = response['dispatch_id']
@@ -62,7 +63,8 @@ def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id,
         )
 
 
-def send_offer_update_email_via_braze(self, user_email, subject, email_body, sender_alias, reply_to, site_code):
+def send_offer_update_email_via_braze(self, user_email, subject, email_body, sender_alias, reply_to, attachments,
+                                      site_code):
     """
     Sends the offer emails after assignment via braze, either for revoking or reminding.
 
@@ -73,7 +75,8 @@ def send_offer_update_email_via_braze(self, user_email, subject, email_body, sen
         email_body (str): The body of the email.
         site_code (str): Identifier of the site sending the email.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
-        reply_to (str): Enterprise Customer reply to address for email reply
+        reply_to (str): Enterprise Customer reply to address for email reply.
+        attachments (list): File attachment list with dicts having 'file_name' and 'url' keys.
     """
     config = get_braze_configuration(site_code)
     try:
@@ -84,7 +87,8 @@ def send_offer_update_email_via_braze(self, user_email, subject, email_body, sen
             subject=subject,
             body=email_body,
             sender_alias=sender_alias,
-            reply_to=reply_to
+            reply_to=reply_to,
+            attachments=attachments
         )
     except (BrazeRateLimitError, BrazeInternalServerError):
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
@@ -96,7 +100,7 @@ def send_offer_update_email_via_braze(self, user_email, subject, email_body, sen
         )
 
 
-def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to, site_code):
+def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to, attachments, site_code):
     """
     Sends the offer usage email via braze.
 
@@ -105,7 +109,8 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to
         emails (str): comma separated emails.
         subject (str): Email subject.
         email_body (str): The body of the email.
-        reply_to (str): Enterprise Customer reply to address for email reply
+        reply_to (str): Enterprise Customer reply to address for email reply.
+        attachments (list): File attachment list with dicts having 'file_name' and 'url' keys.
         site_code (str): Identifier of the site sending the email.
     """
     config = get_braze_configuration(site_code)
@@ -116,7 +121,8 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to
             email_ids=user_emails,
             subject=subject,
             body=email_body,
-            reply_to=reply_to
+            reply_to=reply_to,
+            attachments=attachments
         )
     except (BrazeRateLimitError, BrazeInternalServerError):
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
@@ -128,7 +134,8 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to
         )
 
 
-def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, reply_to, site_code):
+def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, reply_to,
+                                               attachments, site_code):
     """
     Sends the code assignment nudge email via braze.
 
@@ -138,7 +145,8 @@ def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body,
         subject (str): Email subject.
         email_body (str): The body of the email.
         sender_alias (str): Enterprise Customer sender alias used as From Name.
-        reply_to (str): Enterprise Customer reply to address for email reply
+        reply_to (str): Enterprise Customer reply to address for email reply.
+        attachments (list): File attachment list with dicts having 'file_name' and 'url' keys.
         site_code (str): Identifier of the site sending the email.
     """
     config = get_braze_configuration(site_code)
@@ -151,6 +159,7 @@ def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body,
             body=email_body,
             sender_alias=sender_alias,
             reply_to=reply_to,
+            attachments=attachments,
         )
     except (BrazeRateLimitError, BrazeInternalServerError):
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),

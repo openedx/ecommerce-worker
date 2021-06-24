@@ -137,9 +137,10 @@ class BrazeClientTests(TestCase):
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
             client = get_braze_client(self.SITE_CODE)
             response = client.send_message(
-                ['test1@example.com', 'test2@example.com'],
-                'Test Subject',
-                '<html>Test Html Message</html>'
+                email_ids=['test1@example.com', 'test2@example.com'],
+                subject='Test Subject',
+                body='<html>Test Html Message</html>',
+                attachments=[{'file_name': 'filename1', 'url': 'url1'}]
             )
             self.assertEqual(response['success'], True)
 
