@@ -368,6 +368,7 @@ class BrazeClient(object):
         message = {
             'user_aliases': user_aliases,
             'external_user_ids': external_ids,
+            'recipient_subscription_state': 'all',
             'messages': {
                 'email': email
             }
