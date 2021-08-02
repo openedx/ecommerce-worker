@@ -1,5 +1,4 @@
 """Order fulfillment tasks."""
-from __future__ import absolute_import
 from ssl import SSLError
 
 from celery import shared_task
@@ -48,7 +47,7 @@ def fulfill_order(self, order_number, site_code=None, email_opt_in=False):
         if status_code == 406:
             # The order is not fulfillable. Therefore, it must be complete.
             logger.info('Order [%s] has already been fulfilled. Ignoring.', order_number)
-            raise Ignore()
+            raise Ignore() from exc
         # Unknown client error. Let's retry to resolve it.
         logger.warning(
             'Fulfillment of order [%s] failed because of HttpClientError. Retrying',

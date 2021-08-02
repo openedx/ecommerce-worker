@@ -1,11 +1,10 @@
 """ Tests for utility functions. """
-
+import json
 from unittest import TestCase
+from unittest.mock import patch
 
 import ddt
-import json
 import responses
-from mock import patch
 
 from ecommerce_worker.email.v1.utils import (
     did_email_bounce,

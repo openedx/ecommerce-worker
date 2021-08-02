@@ -12,7 +12,7 @@ logger = get_task_logger(__name__)
 
 
 def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
-                                          reply_to, attachments, site_code):
+                                          reply_to, attachments, site_code):  # pylint: disable=invalid-name
     """
     Sends the offer assignment email via Braze.
 
@@ -52,14 +52,13 @@ def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id,
                         token_email=user_email,
                     )
                 )
-    except (BrazeRateLimitError, BrazeInternalServerError):
+    except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
-                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS'))
+                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS')) from exc
     except BrazeError:
         logger.exception(
-            ('[Offer Assignment] Error in offer assignment notification with message --- '
-             '{message}'.format(message=email_body)
-             )
+            '[Offer Assignment] Error in offer assignment notification with message --- '
+            '{message}'.format(message=email_body)
         )
 
 
@@ -90,9 +89,9 @@ def send_offer_update_email_via_braze(self, user_email, subject, email_body, sen
             reply_to=reply_to,
             attachments=attachments
         )
-    except (BrazeRateLimitError, BrazeInternalServerError):
+    except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
-                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS'))
+                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS')) from exc
     except BrazeError:
         logger.exception(
             '[Offer Assignment] Error in offer update notification with message --- '
@@ -124,9 +123,9 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to
             reply_to=reply_to,
             attachments=attachments
         )
-    except (BrazeRateLimitError, BrazeInternalServerError):
+    except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
-                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS'))
+                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS')) from exc
     except BrazeError:
         logger.exception(
             '[Offer Usage] Error in offer usage notification with message --- '
@@ -134,7 +133,7 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to
         )
 
 
-def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, reply_to,
+def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, reply_to,  # pylint: disable=invalid-name
                                                attachments, site_code):
     """
     Sends the code assignment nudge email via braze.
@@ -161,9 +160,9 @@ def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body,
             reply_to=reply_to,
             attachments=attachments,
         )
-    except (BrazeRateLimitError, BrazeInternalServerError):
+    except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
-                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS'))
+                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS')) from exc
     except BrazeError:
         logger.exception(
             '[Code Assignment Nudge Email] Error in offer nudge notification with message --- '

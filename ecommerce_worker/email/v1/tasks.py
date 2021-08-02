@@ -19,7 +19,7 @@ from ecommerce_worker.email.v1.braze.tasks import (
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
+def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, email_body, sender_alias,  # pylint: disable=dangerous-default-value
                                 reply_to='', attachments=[], site_code=None, base_enterprise_url='') -> None:
     """
     Sends the offer assignment email.
@@ -42,7 +42,7 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_update_email(self, user_email, subject, email_body, sender_alias, reply_to='', attachments=[],
+def send_offer_update_email(self, user_email, subject, email_body, sender_alias, reply_to='', attachments=[],  # pylint: disable=dangerous-default-value
                             site_code=None, base_enterprise_url='') -> None:
     """
     Sends the offer emails after assignment, either for revoking or reminding.
@@ -64,7 +64,7 @@ def send_offer_update_email(self, user_email, subject, email_body, sender_alias,
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_usage_email(self, emails, subject, email_body, reply_to='', attachments=[], site_code=None,
+def send_offer_usage_email(self, emails, subject, email_body, reply_to='', attachments=[], site_code=None,  # pylint: disable=dangerous-default-value
                            base_enterprise_url='') -> None:
     """
     Sends the offer usage email.
@@ -84,7 +84,7 @@ def send_offer_usage_email(self, emails, subject, email_body, reply_to='', attac
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_code_assignment_nudge_email(self, email, subject, email_body, sender_alias, reply_to='', attachments=[],
+def send_code_assignment_nudge_email(self, email, subject, email_body, sender_alias, reply_to='', attachments=[],  # pylint: disable=dangerous-default-value
                                      site_code=None, base_enterprise_url='') -> None:
     """
     Sends the code assignment nudge email.

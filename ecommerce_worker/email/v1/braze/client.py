@@ -1,3 +1,4 @@
+# pylint: disable=cyclic-import
 """
 Braze Client functions.
 """
@@ -21,7 +22,7 @@ from ecommerce_worker.utils import get_configuration
 log = get_task_logger(__name__)
 
 
-def is_braze_enabled(site_code) -> bool:
+def is_braze_enabled(site_code) -> bool:  # pylint: disable=missing-function-docstring
     config = get_braze_configuration(site_code)
     return bool(config.get('BRAZE_ENABLE'))
 
@@ -56,7 +57,7 @@ def get_braze_client(site_code):
 
     # Return if Braze integration disabled
     if not config.get('BRAZE_ENABLE'):
-        msg = 'Braze is not enabled for site {}'.format(site_code)
+        msg = f'Braze is not enabled for site {site_code}'
         log.debug(msg)
         raise BrazeNotEnabled(msg)
 
@@ -72,11 +73,8 @@ def get_braze_client(site_code):
     enterprise_campaign_id = config.get('ENTERPRISE_CAMPAIGN_ID')
     from_email = config.get('FROM_EMAIL')
 
-    if (
-            not rest_api_key or
-            not webapp_api_key
-    ):
-        msg = 'Required keys missing for site {}'.format(site_code)
+    if not rest_api_key or not webapp_api_key:
+        msg = f'Required keys missing for site {site_code}'
         log.error(msg)
         raise ConfigurationError(msg)
 
@@ -95,7 +93,7 @@ def get_braze_client(site_code):
     )
 
 
-class BrazeClient(object):
+class BrazeClient:
     """
     Client for Braze REST API
     """
@@ -156,7 +154,7 @@ class BrazeClient(object):
         """
         message_body = json.dumps(body)
         response = {'errors': []}
-        r = self._post_request(message_body, endpoint)
+        r = self._post_request(message_body, endpoint)  # pylint: disable=invalid-name
         response.update(r.json())
         response['status_code'] = r.status_code
 
@@ -180,13 +178,13 @@ class BrazeClient(object):
             r (requests.Response): The http response object
         """
         self.session.headers.update(
-            {"Authorization": u"Bearer {}".format(self.rest_api_key), "Content-Type": "application/json"}
+            {"Authorization": f"Bearer {self.rest_api_key}", "Content-Type": "application/json"}
         )
-        r = self.session.post(urljoin(self.rest_api_url, endpoint), data=body, timeout=2)
+        r = self.session.post(urljoin(self.rest_api_url, endpoint), data=body, timeout=2)  # pylint: disable=invalid-name
         if r.status_code == 429:
             reset_epoch_s = float(r.headers.get("X-RateLimit-Reset", 0))
             raise BrazeRateLimitError(reset_epoch_s)
-        elif str(r.status_code).startswith('5'):
+        if str(r.status_code).startswith('5'):
             raise BrazeInternalServerError
         return r
 
@@ -202,7 +200,7 @@ class BrazeClient(object):
             response (dict): The response object
         """
         response = {'errors': []}
-        r = self._get_request(parameters, endpoint)
+        r = self._get_request(parameters, endpoint)  # pylint: disable=invalid-name
         response.update(r.json())
         response['status_code'] = r.status_code
         message = response["message"]
@@ -225,14 +223,14 @@ class BrazeClient(object):
             r (requests.Response): The http response object
         """
         self.session.headers.update(
-            {"Authorization": u"Bearer {}".format(self.rest_api_key), "Content-Type": "application/json"}
+            {"Authorization": f"Bearer {self.rest_api_key}", "Content-Type": "application/json"}
         )
         url_with_parameters = urljoin(self.rest_api_url, endpoint) + '?' + urlencode(parameters)
-        r = self.session.get(url_with_parameters)
+        r = self.session.get(url_with_parameters)  # pylint: disable=invalid-name
         if r.status_code == 429:
             reset_epoch_s = float(r.headers.get("X-RateLimit-Reset", 0))
             raise BrazeRateLimitError(reset_epoch_s)
-        elif str(r.status_code).startswith('5'):
+        if str(r.status_code).startswith('5'):
             raise BrazeInternalServerError
         return r
 
@@ -289,7 +287,7 @@ class BrazeClient(object):
         if attributes:
             self.__create_post_request(attribute_message, self.users_track_endpoint)
 
-    def send_message(
+    def send_message(  # pylint: disable=dangerous-default-value
         self,
         email_ids,
         subject,
@@ -338,7 +336,7 @@ class BrazeClient(object):
                 }
         """
         # To avoid circular import
-        from ecommerce_worker.email.v1.utils import remove_special_characters_from_string
+        from ecommerce_worker.email.v1.utils import remove_special_characters_from_string  # pylint: disable=import-outside-toplevel
         if not email_ids or not subject or not body:
             raise BrazeClientError('Missing parameters for Braze email')
         self.create_braze_alias(email_ids)
@@ -463,12 +461,12 @@ class BrazeClient(object):
             raise BrazeClientError('Missing parameters for Braze email')
         result = {}
         for email_id in email_ids:
-            send_to_existing_only = True if self.get_braze_external_id(email_id) else False
+            send_to_existing_only = bool(self.get_braze_external_id(email_id))
             message = {
                 'campaign_id': campaign_id,
                 'recipients': [
                     {
-                        'external_user_id': 'Enterprise-{}'.format(email_id),
+                        'external_user_id': f'Enterprise-{email_id}',
                         'trigger_properties': {
                             'sender_alias': sender_alias,
                             'subject': subject,
@@ -478,7 +476,7 @@ class BrazeClient(object):
                         'attributes':
                             {
                                 'email': email_id
-                            }
+                        }
                     }
                 ]
             }

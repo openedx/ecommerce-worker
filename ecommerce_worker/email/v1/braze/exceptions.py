@@ -29,15 +29,14 @@ class BrazeClientError(BrazeError):
 
 
 class BrazeRateLimitError(BrazeClientError):
+    """A rate limit error was encountered."""
     def __init__(self, reset_epoch_s):
         """
-        A rate limit error was encountered.
-
         Arguments:
             reset_epoch_s (float): Unix timestamp for when the API may be called again.
         """
         self.reset_epoch_s = reset_epoch_s
-        super(BrazeRateLimitError, self).__init__()
+        super().__init__()
 
 
 class BrazeInternalServerError(BrazeClientError):

@@ -18,7 +18,7 @@ test: requirements_tox  ## run unit tests and report on coverage
 	tox -e ${PYTHON_VERSION}
 
 quality: requirements_tox  ## run pep8 and pylint
-	tox -e ${PYTHON_VERSION}-quality
+	tox -e quality
 
 validate: clean test quality  ## run tests and quality checks
 

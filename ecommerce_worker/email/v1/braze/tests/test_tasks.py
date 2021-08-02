@@ -2,11 +2,11 @@
 
 import logging
 from unittest import TestCase
+from unittest.mock import patch, Mock
 
 import ddt
 import responses
 from celery.exceptions import Retry
-from mock import patch, Mock
 from requests.exceptions import RequestException
 from testfixtures import LogCapture
 
@@ -154,7 +154,7 @@ class SendEmailsViaBrazeTests(TestCase):
         (send_code_assignment_nudge_email, NUDGE_TASK_KWARGS, "Code Assignment Nudge Email", 'nudge'),
     )
     @ddt.unpack
-    def test_api_client_error(self, task, task_kwargs, logger_prefix, log_message,  mock_log):
+    def test_api_client_error(self, task, task_kwargs, logger_prefix, log_message, mock_log):
         """ Verify API client errors are logged. """
         with patch('ecommerce_worker.configuration.test.BRAZE', self.BRAZE_CONFIG):
             task(**task_kwargs)
@@ -245,7 +245,7 @@ class SendEmailsViaBrazeTests(TestCase):
             status=201)
         with patch('ecommerce_worker.configuration.test.BRAZE', self.BRAZE_CONFIG):
             task(**task_kwargs)
-        self.assertTrue('success' in responses.calls[0].response.text)
+        self.assertIn('success', responses.calls[0].response.text)
 
     @responses.activate
     @patch('ecommerce_worker.email.v1.braze.tasks.update_assignment_email_status')

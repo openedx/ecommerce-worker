@@ -2,13 +2,12 @@
 Tests for Braze client.
 """
 
-from unittest import TestCase
+from unittest import mock, TestCase
+from unittest.mock import patch, Mock
 from urllib.parse import urlencode
 
 import ddt
-import mock
 import responses
-from mock import patch, Mock
 
 from ecommerce_worker.email.v1.braze.client import get_braze_client
 from ecommerce_worker.email.v1.braze.exceptions import (
@@ -46,7 +45,7 @@ class BrazeClientTests(TestCase):
         }
     }
 
-    def mock_braze_user_endpoints(self, users=[]):
+    def mock_braze_user_endpoints(self, users=[]):  # pylint: disable=dangerous-default-value
         """ Mock POST requests to the user alias, track and export endpoints. """
         host = 'https://rest.iad-06.braze.com/users/track'
         responses.add(
@@ -86,7 +85,7 @@ class BrazeClientTests(TestCase):
         with mock.patch('ecommerce_worker.email.v1.braze.client.log.debug') as mock_log:
             self.assert_get_braze_client_raises(BrazeNotEnabled, {'BRAZE_ENABLE': False})
 
-        mock_log.assert_called_once_with('Braze is not enabled for site {}'.format(self.SITE_CODE))
+        mock_log.assert_called_once_with(f'Braze is not enabled for site {self.SITE_CODE}')
 
     @ddt.data(
         {},
@@ -102,7 +101,7 @@ class BrazeClientTests(TestCase):
         with mock.patch('ecommerce_worker.email.v1.braze.client.log.error') as mock_log:
             self.assert_get_braze_client_raises(ConfigurationError, braze_config)
 
-        mock_log.assert_called_once_with('Required keys missing for site {}'.format(self.SITE_CODE))
+        mock_log.assert_called_once_with(f'Required keys missing for site {self.SITE_CODE}')
 
     def test_create_braze_alias(self):
         """
@@ -201,7 +200,7 @@ class BrazeClientTests(TestCase):
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
             client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(error):
-                response = client.send_message(
+                response = client.send_message(  # pylint: disable=unused-variable
                     ['test1@example.com', 'test2@example.com'],
                     'Test Subject',
                     '<html>Test Html Message</html>'
@@ -221,7 +220,7 @@ class BrazeClientTests(TestCase):
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
             client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(BrazeClientError):
-                response = client.send_message(email, subject, body)
+                response = client.send_message(email, subject, body)  # pylint: disable=unused-variable
 
     @responses.activate
     def test_send_braze_campaign_message_success(self):
@@ -280,7 +279,7 @@ class BrazeClientTests(TestCase):
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
             client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(error):
-                response = client.send_campaign_message(
+                response = client.send_campaign_message(  # pylint: disable=unused-variable
                     ['test1@example.com', 'test2@example.com'],
                     'Test Subject',
                     '<html>Test Html Message</html>'
@@ -300,16 +299,16 @@ class BrazeClientTests(TestCase):
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
             client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(BrazeClientError):
-                response = client.send_campaign_message(email, subject, body)
+                response = client.send_campaign_message(email, subject, body)  # pylint: disable=unused-variable
 
     @ddt.data(
         (
             {
                 'emails': [
-                   {
-                       'email': 'foo@braze.com',
-                       'hard_bounced_at': '2016-08-25 15:24:32 +0000'
-                   }
+                    {
+                        'email': 'foo@braze.com',
+                        'hard_bounced_at': '2016-08-25 15:24:32 +0000'
+                    }
                 ],
                 'message': 'success',
             },

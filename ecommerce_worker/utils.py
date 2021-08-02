@@ -1,5 +1,4 @@
 """Helper functions."""
-from __future__ import absolute_import
 import os
 import sys
 
@@ -43,7 +42,7 @@ def get_configuration(variable, site_code=None):
                 setting_value = override_value
 
     if setting_value is None:
-        raise RuntimeError('Worker is improperly configured: {} is unset in {}.'.format(variable, module))
+        raise RuntimeError(f'Worker is improperly configured: {variable} is unset in {module}.')
     return setting_value
 
 
