@@ -1,3 +1,5 @@
+## Anyone merging to this repository is expected to [release and monitor their changes](https://openedx.atlassian.net/wiki/spaces/RS/pages/1835106870/How+to+contribute+to+our+repositories); if you are not able to do this DO NOT MERGE, please coordinate with someone who can to ensure that the changes are released.
+
 **Merge checklist:**
 - [ ] Any new requirements are in the right place (do **not** manually modify the `requirements/*.txt` files)
     - `base.in` if needed in production
