@@ -4,7 +4,7 @@ This file contains a primitive cache
 import threading
 import time
 
-lock = threading.Lock()  # pylint: disable=invalid-name
+lock = threading.Lock()
 
 
 class CacheObject:

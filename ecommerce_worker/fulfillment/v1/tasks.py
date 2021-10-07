@@ -8,7 +8,7 @@ from edx_rest_api_client import exceptions
 
 from ecommerce_worker.utils import get_configuration, get_ecommerce_client
 
-logger = get_task_logger(__name__)  # pylint: disable=invalid-name
+logger = get_task_logger(__name__)
 
 
 def _retry_order(self, exception, max_fulfillment_retries, order_number):
