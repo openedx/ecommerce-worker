@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from logging.config import dictConfig
 
 from ecommerce_worker.configuration.base import *

@@ -39,7 +39,7 @@ def did_email_bounce(user_email, site_code=None) -> bool:
         user_email (str): Recipient's email address.
         site_code (str): Identifier of the site sending the email.
     """
-    if is_braze_enabled():
+    if is_braze_enabled():  # pylint: disable=no-value-for-parameter
         client = get_braze_client(site_code)
         return client.did_email_bounce(user_email)
 

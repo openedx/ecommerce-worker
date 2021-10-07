@@ -1,14 +1,12 @@
 """Tests of fulfillment tasks."""
 # pylint: disable=no-value-for-parameter
-from __future__ import absolute_import, unicode_literals
-from unittest import TestCase
+from unittest import mock, TestCase
 
 from celery.exceptions import Ignore
 import ddt
 from edx_rest_api_client import exceptions
 import responses
 import jwt
-import mock
 
 # Ensures that a Celery app is initialized when tests are run.
 from ecommerce_worker import celery_app  # pylint: disable=unused-import

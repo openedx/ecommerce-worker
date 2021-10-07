@@ -1,9 +1,7 @@
 """ Test coverage for ecommerce_worker/utils.py """
-from __future__ import absolute_import
-from unittest import TestCase
+from unittest import mock, TestCase
 
 import ddt
-import mock
 
 from ecommerce_worker.configuration.test import ECOMMERCE_API_ROOT
 from ecommerce_worker.utils import get_configuration
