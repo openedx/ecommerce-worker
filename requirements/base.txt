@@ -10,25 +10,25 @@ billiard==3.6.4.0
     # via celery
 celery==4.4.7
     # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/base.in
+    #   -c constraints.txt
+    #   -r base.in
 certifi==2020.12.5
     # via requests
 chardet==4.0.0
     # via requests
+django==2.2.22
+    # via
+    #   -c constraints.txt
+    #   django-crum
+    #   edx-django-utils
 django-crum==0.7.9
     # via edx-django-utils
 django-waffle==2.1.0
     # via edx-django-utils
-django==2.2.22
-    # via
-    #   -c requirements/constraints.txt
-    #   django-crum
-    #   edx-django-utils
 edx-django-utils==4.0.0
     # via edx-rest-api-client
 edx-rest-api-client==5.3.0
-    # via -r requirements/base.in
+    # via -r base.in
 idna==2.10
     # via requests
 kombu==4.6.11
@@ -46,20 +46,20 @@ pytz==2021.1
     #   celery
     #   django
 redis==3.5.3
-    # via -r requirements/base.in
+    # via -r base.in
 requests==2.25.1
     # via
     #   edx-rest-api-client
     #   slumber
 six==1.16.0
-    # via -r requirements/base.in
+    # via -r base.in
 slumber==0.7.1
     # via edx-rest-api-client
 sqlparse==0.4.1
     # via django
 stevedore==3.3.0
     # via edx-django-utils
-urllib3==1.26.4
+urllib3==1.26.5
     # via requests
 vine==1.3.0
     # via
