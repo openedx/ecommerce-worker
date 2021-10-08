@@ -2,3 +2,8 @@
 [MASTER]
 ignore=configuration, celery_app.py
 load-plugins = edx_lint.pylint
+
+[MESSAGES CONTROL]
+disable+=
+    unused-variable,
+    logging-format-interpolation
