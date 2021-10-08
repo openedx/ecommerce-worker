@@ -6,48 +6,50 @@
 #
 amqp==2.6.1
     # via kombu
+asgiref==3.4.1
+    # via django
 billiard==3.6.4.0
     # via celery
 celery==4.4.7
     # via
     #   -c requirements/constraints.txt
     #   -r requirements/base.in
-certifi==2020.12.5
+certifi==2021.5.30
     # via requests
-chardet==4.0.0
+charset-normalizer==2.0.6
     # via requests
 django-crum==0.7.9
     # via edx-django-utils
-django-waffle==2.1.0
+django-waffle==2.2.1
     # via edx-django-utils
-django==2.2.22
+django==3.2.8
     # via
     #   -c requirements/constraints.txt
     #   django-crum
     #   edx-django-utils
-edx-django-utils==4.0.0
+edx-django-utils==4.4.0
     # via edx-rest-api-client
-edx-rest-api-client==5.3.0
+edx-rest-api-client==5.4.0
     # via -r requirements/base.in
-idna==2.10
+idna==3.2
     # via requests
 kombu==4.6.11
     # via celery
-newrelic==6.2.0.156
+newrelic==7.0.0.166
     # via edx-django-utils
 pbr==5.6.0
     # via stevedore
 psutil==5.8.0
     # via edx-django-utils
-pyjwt==2.1.0
+pyjwt==2.2.0
     # via edx-rest-api-client
-pytz==2021.1
+pytz==2021.3
     # via
     #   celery
     #   django
 redis==3.5.3
     # via -r requirements/base.in
-requests==2.25.1
+requests==2.26.0
     # via
     #   edx-rest-api-client
     #   slumber
@@ -55,11 +57,11 @@ six==1.16.0
     # via -r requirements/base.in
 slumber==0.7.1
     # via edx-rest-api-client
-sqlparse==0.4.1
+sqlparse==0.4.2
     # via django
-stevedore==3.3.0
+stevedore==3.4.0
     # via edx-django-utils
-urllib3==1.26.4
+urllib3==1.26.7
     # via requests
 vine==1.3.0
     # via
