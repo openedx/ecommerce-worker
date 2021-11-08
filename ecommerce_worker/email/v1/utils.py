@@ -46,7 +46,7 @@ def did_email_bounce(user_email, site_code=None) -> bool:
     return False
 
 
-def remove_special_characters_from_string(input_string):  # pylint: disable=invalid-name
+def remove_special_characters_from_string(input_string):
     """
     Removes all special characters from the string passed as argument.
     string.punctuation contains the following characters:  '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'

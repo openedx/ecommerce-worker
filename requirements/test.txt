@@ -8,7 +8,11 @@ amqp==2.6.1
     # via
     #   -r requirements/base.txt
     #   kombu
-astroid==2.5.6
+asgiref==3.4.1
+    # via
+    #   -r requirements/base.txt
+    #   django
+astroid==2.8.2
     # via
     #   -r requirements/test.in
     #   pylint
@@ -23,61 +27,59 @@ celery==4.4.7
     # via
     #   -c requirements/constraints.txt
     #   -r requirements/base.txt
-certifi==2020.12.5
+certifi==2021.5.30
     # via
     #   -r requirements/base.txt
     #   requests
-chardet==4.0.0
+charset-normalizer==2.0.6
     # via
     #   -r requirements/base.txt
     #   requests
 click-log==0.3.2
     # via edx-lint
-click==7.1.2
+click==8.0.1
     # via
     #   click-log
     #   code-annotations
     #   edx-lint
-code-annotations==1.1.1
+code-annotations==1.2.0
     # via edx-lint
-coverage==5.5
+coverage[toml]==6.0.1
     # via
     #   -r requirements/test.in
     #   pytest-cov
-ddt==1.4.2
+ddt==1.4.4
     # via -r requirements/test.in
 django-crum==0.7.9
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
-django-waffle==2.1.0
+django-waffle==2.2.1
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
     # via
     #   -c requirements/constraints.txt
     #   -r requirements/base.txt
-    #   code-annotations
     #   django-crum
     #   edx-django-utils
-    #   edx-lint
-edx-django-utils==4.0.0
+edx-django-utils==4.4.0
     # via
     #   -r requirements/base.txt
     #   edx-rest-api-client
-edx-lint==5.0.0
+edx-lint==5.2.0
     # via -r requirements/test.in
-edx-rest-api-client==5.3.0
+edx-rest-api-client==5.4.0
     # via -r requirements/base.txt
-idna==2.10
+idna==3.2
     # via
     #   -r requirements/base.txt
     #   requests
 iniconfig==1.1.1
     # via pytest
-isort==5.8.0
+isort==5.9.3
     # via pylint
-jinja2==2.11.3
+jinja2==3.0.2
     # via code-annotations
 kombu==4.6.11
     # via
@@ -85,23 +87,25 @@ kombu==4.6.11
     #   celery
 lazy-object-proxy==1.6.0
     # via astroid
-markupsafe==1.1.1
+markupsafe==2.0.1
     # via jinja2
 mccabe==0.6.1
     # via pylint
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==6.2.0.156
+newrelic==7.0.0.166
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
-packaging==20.9
+packaging==21.0
     # via pytest
 pbr==5.6.0
     # via
     #   -r requirements/base.txt
     #   stevedore
-pluggy==0.13.1
+platformdirs==2.4.0
+    # via pylint
+pluggy==1.0.0
     # via pytest
 psutil==5.8.0
     # via
@@ -111,7 +115,7 @@ py==1.10.0
     # via pytest
 pycodestyle==2.7.0
     # via -r requirements/test.in
-pyjwt==2.1.0
+pyjwt==2.2.0
     # via
     #   -r requirements/base.txt
     #   edx-rest-api-client
@@ -126,7 +130,7 @@ pylint-plugin-utils==0.6
     #   -r requirements/test.in
     #   pylint-celery
     #   pylint-django
-pylint==2.8.2
+pylint==2.11.1
     # via
     #   -r requirements/test.in
     #   edx-lint
@@ -135,15 +139,15 @@ pylint==2.8.2
     #   pylint-plugin-utils
 pyparsing==2.4.7
     # via packaging
-pytest-cov==2.11.1
+pytest-cov==3.0.0
     # via -r requirements/test.in
-pytest==6.2.4
+pytest==6.2.5
     # via
     #   -r requirements/test.in
     #   pytest-cov
 python-slugify==5.0.2
     # via code-annotations
-pytz==2021.1
+pytz==2021.3
     # via
     #   -r requirements/base.txt
     #   celery
@@ -152,13 +156,13 @@ pyyaml==5.4.1
     # via code-annotations
 redis==3.5.3
     # via -r requirements/base.txt
-requests==2.25.1
+requests==2.26.0
     # via
     #   -r requirements/base.txt
     #   edx-rest-api-client
     #   responses
     #   slumber
-responses==0.13.3
+responses==0.14.0
     # via -r requirements/test.in
 six==1.16.0
     # via
@@ -169,16 +173,16 @@ slumber==0.7.1
     # via
     #   -r requirements/base.txt
     #   edx-rest-api-client
-sqlparse==0.4.1
+sqlparse==0.4.2
     # via
     #   -r requirements/base.txt
     #   django
-stevedore==3.3.0
+stevedore==3.4.0
     # via
     #   -r requirements/base.txt
     #   code-annotations
     #   edx-django-utils
-testfixtures==6.17.1
+testfixtures==6.18.3
     # via -r requirements/test.in
 text-unidecode==1.3
     # via python-slugify
@@ -186,7 +190,13 @@ toml==0.10.2
     # via
     #   pylint
     #   pytest
-urllib3==1.26.4
+tomli==1.2.1
+    # via coverage
+typing-extensions==3.10.0.2
+    # via
+    #   astroid
+    #   pylint
+urllib3==1.26.7
     # via
     #   -r requirements/base.txt
     #   requests
@@ -198,3 +208,6 @@ vine==1.3.0
     #   celery
 wrapt==1.12.1
     # via astroid
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

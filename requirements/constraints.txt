@@ -16,4 +16,4 @@ celery<5.0
 
 
 # some other package are bringing django3.0 so adding constraint.
-Django<2.3
+Django<3.3
