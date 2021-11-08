@@ -4,3 +4,4 @@ recursive-include ecommerce_worker *.html *.png *js *.css *jpg *jpeg *svg *py *.
 include requirements/base.in
 recursive-include requirements *.txt
 
+include requirements/constraints.txt
