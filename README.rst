@@ -1,7 +1,7 @@
-edX Ecommerce Worker  |Travis|_ |Codecov|_
+edX Ecommerce Worker  |Build|_ |Codecov|_
 ==========================================
-.. |Travis| image:: https://travis-ci.com/edx/ecommerce-worker.svg?branch=master
-.. _Travis: https://travis-ci.com/edx/ecommerce-worker
+.. |Build| image:: https://github.com/edx/ecommerce-worker/workflows/Python%20CI/badge.svg?branch=master
+.. _Build: https://github.com/edx/ecommerce-worker/actions?query=workflow%3A%22Python+CI%22
 
 .. |Codecov| image:: http://codecov.io/github/edx/ecommerce-worker/coverage.svg?branch=master
 .. _Codecov: http://codecov.io/github/edx/ecommerce-worker?branch=master
