@@ -1,3 +1,6 @@
+import os
+import re
+
 from setuptools import setup, find_packages
 
 
@@ -34,9 +37,26 @@ def is_requirement(line):
     )
 
 
+def get_version(file_path):
+    """
+    Extract the version string from the file at the given relative path fragments.
+    """
+    filename = os.path.join(os.path.dirname(__file__), file_path)
+    with open(filename, encoding='utf-8') as opened_file:
+        version_file = opened_file.read()
+        version_match = re.search(r"""(^__version__\s?=\s?['"](?P<version_number>[^'"]*)['"])""",
+                                  version_file, re.M)
+    if version_match:
+        return version_match.group('version_number')
+    raise RuntimeError('Unable to find version string.')
+
+
+VERSION = get_version("ecommerce_worker/__init__.py")
+
+
 setup(
     name='edx-ecommerce-worker',
-    version='3.0.0',
+    version=VERSION,
     description='Celery tasks supporting the operations of edX\'s ecommerce service',
     long_description=long_description,
     classifiers=[
