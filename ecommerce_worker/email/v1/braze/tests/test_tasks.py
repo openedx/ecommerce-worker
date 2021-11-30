@@ -50,6 +50,10 @@ class SendEmailsViaBrazeTests(TestCase):
         'EXPORT_ID_ENDPOINT': '/users/export/ids',
         'CAMPAIGN_SEND_ENDPOINT': '/campaigns/trigger/send',
         'ENTERPRISE_CAMPAIGN_ID': '',
+        'ENTERPRISE_CODE_ASSIGNMENT_CAMPAIGN_ID': 'the-code-assignment-campaign-id',
+        'ENTERPRISE_CODE_UPDATE_CAMPAIGN_ID': 'the-code-update-campaign-id',
+        'ENTERPRISE_CODE_USAGE_CAMPAIGN_ID': 'the-code-usage-campaign-id',
+        'ENTERPRISE_CODE_NUDGE_CAMPAIGN_ID': '',  # cover case where a `campaign_id` kwarg is falsey.
         'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
         'BRAZE_RETRY_SECONDS': 3600,
         'BRAZE_RETRY_ATTEMPTS': 6,
