@@ -295,6 +295,7 @@ class BrazeClient:
         sender_alias='EdX Support Team',
         reply_to='',
         attachments=[],
+        campaign_id='',
     ):
         """
         Sends the message via Braze Rest API /messages/send
@@ -306,6 +307,7 @@ class BrazeClient:
             sender_alias (str): sender alias for email e.g. edX Support Team
             reply_to (str): Enterprise Customer reply to address for email reply
             attachments (list): list of dicts with filename and url keys
+            campaign_id (str): The id of the campaign this email is associated with
 
         Request message format:
             Content-Type: application/json
@@ -313,6 +315,7 @@ class BrazeClient:
             Body:
                 {
                     "external_user_ids": [ "user1@example.com", "user2@example.org" ],
+                    "campaign_id": "some-campaign-identifier",
                     "messages": {
                         "email": {
                             "app_id": "99999999-9999-9999-9999-999999999999",
@@ -366,6 +369,7 @@ class BrazeClient:
         message = {
             'user_aliases': user_aliases,
             'external_user_ids': external_ids,
+            'campaign_id': campaign_id,
             'recipient_subscription_state': 'all',
             'messages': {
                 'email': email

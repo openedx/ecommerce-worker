@@ -12,7 +12,7 @@ logger = get_task_logger(__name__)
 
 
 def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
-                                          reply_to, attachments, site_code):  # pylint: disable=invalid-name
+                                          reply_to, attachments, site_code):
     """
     Sends the offer assignment email via Braze.
 
@@ -31,13 +31,15 @@ def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id,
     try:
         user_emails = [user_email]
         braze_client = get_braze_client(site_code)
-        response = braze_client.send_message(
+        response = _send_braze_message(
+            braze_client,
             email_ids=user_emails,
             subject=subject,
             body=email_body,
             sender_alias=sender_alias,
             reply_to=reply_to,
-            attachments=attachments
+            attachments=attachments,
+            campaign_id=config.get('ENTERPRISE_CODE_ASSIGNMENT_CAMPAIGN_ID'),
         )
         if response and response['success']:
             dispatch_id = response['dispatch_id']
@@ -81,13 +83,15 @@ def send_offer_update_email_via_braze(self, user_email, subject, email_body, sen
     try:
         user_emails = [user_email]
         braze_client = get_braze_client(site_code)
-        braze_client.send_message(
+        _send_braze_message(
+            braze_client,
             email_ids=user_emails,
             subject=subject,
             body=email_body,
             sender_alias=sender_alias,
             reply_to=reply_to,
-            attachments=attachments
+            attachments=attachments,
+            campaign_id=config.get('ENTERPRISE_CODE_UPDATE_CAMPAIGN_ID'),
         )
     except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
@@ -116,12 +120,14 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to
     try:
         user_emails = list(emails.strip().split(","))
         braze_client = get_braze_client(site_code)
-        braze_client.send_message(
+        _send_braze_message(
+            braze_client,
             email_ids=user_emails,
             subject=subject,
             body=email_body,
             reply_to=reply_to,
-            attachments=attachments
+            attachments=attachments,
+            campaign_id=config.get('ENTERPRISE_CODE_USAGE_CAMPAIGN_ID'),
         )
     except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
@@ -152,13 +158,15 @@ def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body,
     try:
         user_emails = [email]
         braze_client = get_braze_client(site_code)
-        braze_client.send_message(
+        _send_braze_message(
+            braze_client,
             email_ids=user_emails,
             subject=subject,
             body=email_body,
             sender_alias=sender_alias,
             reply_to=reply_to,
             attachments=attachments,
+            campaign_id=config.get('ENTERPRISE_CODE_NUDGE_CAMPAIGN_ID'),
         )
     except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
@@ -168,3 +176,13 @@ def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body,
             '[Code Assignment Nudge Email] Error in offer nudge notification with message --- '
             '{message}'.format(message=email_body)
         )
+
+
+def _send_braze_message(braze_client, **kwargs):
+    """
+    Helper to send braze messages.  Pops any falsey `campaign_id`
+    argument before sending.
+    """
+    if 'campaign_id' in kwargs and not kwargs['campaign_id']:
+        kwargs.pop('campaign_id')
+    return braze_client.send_message(**kwargs)
