@@ -296,6 +296,7 @@ class BrazeClient:
         reply_to='',
         attachments=[],
         campaign_id='',
+        message_variation_id=None,
     ):
         """
         Sends the message via Braze Rest API /messages/send
@@ -308,6 +309,7 @@ class BrazeClient:
             reply_to (str): Enterprise Customer reply to address for email reply
             attachments (list): list of dicts with filename and url keys
             campaign_id (str): The id of the campaign this email is associated with
+            message_variation_id (str): The id of the message variant associated with the given campaign_id
 
         Request message format:
             Content-Type: application/json
@@ -323,6 +325,7 @@ class BrazeClient:
                             "from": "edX <edx-for-business-no-reply@info.edx.org>",
                             "reply_to": "reply@edx.org",
                             "body": "<html>Test</html>",
+                            "message_variation_id": "email-1234",
                             "attachments": [
                                { "file_name": "filename1", "url": "url1" },
                                { "file_name": "filename2", "url": "url2" }
@@ -366,6 +369,8 @@ class BrazeClient:
             email['attachments'] = attachments
         if reply_to:
             email['reply_to'] = reply_to
+        if message_variation_id:
+            email['message_variation_id'] = message_variation_id
         message = {
             'user_aliases': user_aliases,
             'external_user_ids': external_ids,

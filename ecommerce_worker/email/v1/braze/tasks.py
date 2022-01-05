@@ -40,6 +40,7 @@ def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id,
             reply_to=reply_to,
             attachments=attachments,
             campaign_id=config.get('ENTERPRISE_CODE_ASSIGNMENT_CAMPAIGN_ID'),
+            message_variation_id=config.get('ENTERPRISE_CODE_ASSIGNMENT_MESSAGE_VARIATION_ID'),
         )
         if response and response['success']:
             dispatch_id = response['dispatch_id']
@@ -92,6 +93,7 @@ def send_offer_update_email_via_braze(self, user_email, subject, email_body, sen
             reply_to=reply_to,
             attachments=attachments,
             campaign_id=config.get('ENTERPRISE_CODE_UPDATE_CAMPAIGN_ID'),
+            message_variation_id=config.get('ENTERPRISE_CODE_UPDATE_MESSAGE_VARIATION_ID'),
         )
     except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
@@ -128,6 +130,7 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to
             reply_to=reply_to,
             attachments=attachments,
             campaign_id=config.get('ENTERPRISE_CODE_USAGE_CAMPAIGN_ID'),
+            message_variation_id=config.get('ENTERPRISE_CODE_USAGE_MESSAGE_VARIATION_ID'),
         )
     except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
@@ -167,6 +170,7 @@ def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body,
             reply_to=reply_to,
             attachments=attachments,
             campaign_id=config.get('ENTERPRISE_CODE_NUDGE_CAMPAIGN_ID'),
+            message_variation_id=config.get('ENTERPRISE_CODE_NUDGE_MESSAGE_VARIATION_ID'),
         )
     except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
