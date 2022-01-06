@@ -300,6 +300,11 @@ class BrazeClient:
     ):
         """
         Sends the message via Braze Rest API /messages/send
+        The "override_frequency_capping" key in the request payload is important;
+        it tells Braze to ignore the global campaign message frequency cap
+        for the message we're sending in this method.  Since this is a transactional
+        message, we'd like the recipient to receive it regardless of what/how-many
+        other campaign messages they have received.
 
         Arguments:
             email_ids (list): e.g. ['test1@example.com', 'test2@example.com']
@@ -318,6 +323,7 @@ class BrazeClient:
                 {
                     "external_user_ids": [ "user1@example.com", "user2@example.org" ],
                     "campaign_id": "some-campaign-identifier",
+                    "override_frequency_capping": true,
                     "messages": {
                         "email": {
                             "app_id": "99999999-9999-9999-9999-999999999999",
@@ -374,12 +380,15 @@ class BrazeClient:
         message = {
             'user_aliases': user_aliases,
             'external_user_ids': external_ids,
-            'campaign_id': campaign_id,
             'recipient_subscription_state': 'all',
             'messages': {
                 'email': email
             }
         }
+        if campaign_id:
+            message['campaign_id'] = campaign_id
+            message['override_frequency_capping'] = True
+
         # Scrub the app_id from the log message
         cleaned_message = copy.deepcopy(message)
         cleaned_app_id = '{}...{}'.format(cleaned_message['messages']['email']['app_id'][0:4],
