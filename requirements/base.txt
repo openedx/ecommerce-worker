@@ -22,7 +22,7 @@ django-crum==0.7.9
     # via edx-django-utils
 django-waffle==2.2.1
     # via edx-django-utils
-django==3.2.11
+django==3.2.14
     # via
     #   -c requirements/constraints.txt
     #   django-crum
