@@ -1,8 +1,10 @@
 """Helper functions."""
+import json
 import os
 import sys
 
-from edx_rest_api_client.client import EdxRestApiClient
+import requests
+from edx_rest_api_client.client import REQUEST_READ_TIMEOUT, REQUEST_CONNECT_TIMEOUT
 
 from ecommerce_worker.configuration import CONFIGURATION_MODULE
 
@@ -46,19 +48,36 @@ def get_configuration(variable, site_code=None):
     return setting_value
 
 
-def get_ecommerce_client(url_postfix='', site_code=None):
+def get_access_token():
     """
-    Get client for fetching data from ecommerce API.
-    Arguments:
-        site_code (str): (Optional) The SITE_OVERRIDES key to inspect for site-specific values
-        url_postfix (str): (Optional) The URL postfix value to append to the ECOMMERCE_API_ROOT value.
+    Returns an access token for this site's service user.
+    The access token is retrieved using the current site's OAuth credentials and the client credentials grant.
+    The token is cached for the lifetime of the token, as specified by the OAuth provider's response. The token
+    type is JWT.
 
     Returns:
-        EdxRestApiClient object
+        str: JWT access token
     """
-    ecommerce_api_root = get_configuration('ECOMMERCE_API_ROOT', site_code=site_code)
-    signing_key = get_configuration('JWT_SECRET_KEY', site_code=site_code)
-    issuer = get_configuration('JWT_ISSUER', site_code=site_code)
-    service_username = get_configuration('ECOMMERCE_SERVICE_USERNAME', site_code=site_code)
-    return EdxRestApiClient(
-        ecommerce_api_root + url_postfix, signing_key=signing_key, issuer=issuer, username=service_username)
+
+    oauth_access_token_url = f"{get_configuration('BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL')}/access_token/"
+    response = requests.post(
+        oauth_access_token_url,
+        data={
+            'grant_type': 'client_credentials',
+            'client_id': get_configuration('BACKEND_SERVICE_EDX_OAUTH2_KEY'),
+            'client_secret': get_configuration('BACKEND_SERVICE_EDX_OAUTH2_SECRET'),
+            'token_type': 'jwt',
+        },
+        headers={
+            'User-Agent': 'ecommerce-worker',
+        },
+        timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT)
+    )
+
+    try:
+        data = response.json()
+        access_token = data['access_token']
+
+    except (KeyError, json.decoder.JSONDecodeError) as json_error:
+        raise requests.RequestException(response=response) from json_error
+    return access_token

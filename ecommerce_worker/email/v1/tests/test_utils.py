@@ -2,6 +2,7 @@
 import json
 from unittest import TestCase
 from unittest.mock import patch
+from urllib.parse import urljoin
 
 import ddt
 import responses
@@ -18,15 +19,27 @@ from ecommerce_worker.utils import get_configuration
 class EmailUtilsTests(TestCase):
     """Tests for email v1 utility functions."""
 
+    OAUTH_ACCESS_TOKEN_URL = f"{get_configuration('BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL')}/access_token/"
+    ACCESS_TOKEN = 'FAKE-access-token'
+
     def mock_ecommerce_assignment_email_api(self, body, status=200):
         """ Mock POST requests to the ecommerce assignment-email API endpoint. """
-        responses.reset()
         responses.add(
             responses.POST, '{}/assignment-email/status/'.format(
                 get_configuration('ECOMMERCE_API_ROOT').strip('/')
             ),
             status=status,
             body=json.dumps(body), content_type='application/json',
+        )
+
+    def mock_access_token_api(self, status=200):
+        """ Mock POST requests to retrieve an access token for this site's service user. """
+        body = json.dumps(dict(access_token=self.ACCESS_TOKEN))
+        responses.add(
+            responses.POST,
+            self.OAUTH_ACCESS_TOKEN_URL,
+            status=status,
+            body=body
         )
 
     @responses.activate
@@ -57,6 +70,7 @@ class EmailUtilsTests(TestCase):
         """
         Test routine that updates email send status in ecommerce.
         """
+        self.mock_access_token_api()
         self.mock_ecommerce_assignment_email_api(data)
         self.assertEqual(
             update_assignment_email_status('555', '1234ABC', 'success'),

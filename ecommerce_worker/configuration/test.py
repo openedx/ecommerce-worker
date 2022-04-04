@@ -22,8 +22,7 @@ dictConfig(logger_config)
 
 
 # AUTHENTICATION
-JWT_SECRET_KEY = 'test-key'
-JWT_ISSUER = 'ecommerce_worker'
+BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL = 'http://localhost:18000/oauth2'
 
 ECOMMERCE_SERVICE_USERNAME = 'service'
 # END AUTHENTICATION

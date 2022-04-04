@@ -1,12 +1,13 @@
 """Order fulfillment tasks."""
-from ssl import SSLError
+from urllib.parse import urljoin
 
+import requests
 from celery import shared_task
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
-from edx_rest_api_client import exceptions
+from requests.exceptions import HTTPError
 
-from ecommerce_worker.utils import get_configuration, get_ecommerce_client
+from ecommerce_worker.utils import get_configuration, get_access_token
 
 logger = get_task_logger(__name__)
 
@@ -37,25 +38,38 @@ def fulfill_order(self, order_number, site_code=None, email_opt_in=False):
     Returns:
         None
     """
+
+    api_url = urljoin(
+        get_configuration('ECOMMERCE_API_ROOT', site_code=site_code),
+        f'orders/{order_number}/fulfill/'
+    )
     max_fulfillment_retries = get_configuration('MAX_FULFILLMENT_RETRIES', site_code=site_code)
-    api = get_ecommerce_client(site_code=site_code)
+
     try:
         logger.info('Requesting fulfillment of order [%s].', order_number)
-        api.orders(order_number).fulfill.put(email_opt_in=email_opt_in)
-    except exceptions.HttpClientError as exc:
-        status_code = exc.response.status_code  # pylint: disable=no-member
+        access_token = get_access_token()
+
+        headers = {'Authorization': f'JWT {access_token}'}
+        response = requests.put(
+            api_url,
+            params={
+                'email_opt_in': email_opt_in
+            },
+            headers=headers
+        )
+        response.raise_for_status()
+
+    except HTTPError as exc:
+        status_code = exc.response.status_code
         if status_code == 406:
             # The order is not fulfillable. Therefore, it must be complete.
             logger.info('Order [%s] has already been fulfilled. Ignoring.', order_number)
             raise Ignore() from exc
+
         # Unknown client error. Let's retry to resolve it.
         logger.warning(
             'Fulfillment of order [%s] failed because of HttpClientError. Retrying',
             order_number,
             exc_info=True
         )
-        _retry_order(self, exc, max_fulfillment_retries, order_number)
-
-    except (exceptions.HttpServerError, exceptions.Timeout, SSLError) as exc:
-        # Fulfillment failed, retry
         _retry_order(self, exc, max_fulfillment_retries, order_number)

@@ -17,8 +17,7 @@ ECOMMERCE_API_ROOT = 'http://localhost:18130/api/v2/'
 # END ORDER FULFILLMENT
 
 # AUTHENTICATION
-JWT_SECRET_KEY = 'insecure-secret-key'
-JWT_ISSUER = 'ecommerce_worker'
+BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL = 'http://localhost:18000/oauth2'
 # END AUTHENTICATION
 
 # LOGGING
