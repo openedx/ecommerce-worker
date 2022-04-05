@@ -1,3 +1,9 @@
+⛔️ DEPRECATION WARNING 
+======================
+**This repository is deprecated and in maintainence-only operation while we work on a replacement, please see `this announcement <https://discuss.openedx.org/t/deprecation-removal-ecommerce-service-depr-22/6839>`__ for more information.**
+
+Although we have stopped integrating new contributions, we always appreciate security disclosures and patches sent to `security@edx.org <mailto:security@edx.org>`__
+
 edX Ecommerce Worker  |Build|_ |Codecov|_
 ==========================================
 .. |Build| image:: https://github.com/edx/ecommerce-worker/workflows/Python%20CI/badge.svg?branch=master
