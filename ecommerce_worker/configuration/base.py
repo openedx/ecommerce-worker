@@ -70,7 +70,7 @@ SITE_OVERRIDES = None
 # .. toggle_use_cases: open_edx
 # .. toggle_creation_date: 2021-02-09
 # .. toggle_target_removal_date: None
-# .. toggle_warnings: None
+# .. toggle_warning: None
 # .. toggle_tickets: ENT-4071
 BRAZE = {
     'BRAZE_ENABLE': False,
