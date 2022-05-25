@@ -6,106 +6,106 @@
 #
 amqp==2.6.1
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   kombu
 asgiref==3.4.1
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   django
 billiard==3.6.4.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   celery
 celery==4.4.7
     # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/base.txt
+    #   -c constraints.txt
+    #   -r base.txt
 certifi==2021.5.30
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   requests
 charset-normalizer==2.0.6
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   requests
+django==3.2.8
+    # via
+    #   -c constraints.txt
+    #   -r base.txt
+    #   django-crum
+    #   edx-django-utils
 django-crum==0.7.9
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-django-utils
 django-waffle==2.2.1
     # via
-    #   -r requirements/base.txt
-    #   edx-django-utils
-django==3.2.8
-    # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/base.txt
-    #   django-crum
+    #   -r base.txt
     #   edx-django-utils
 edx-django-utils==4.4.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-rest-api-client
 edx-rest-api-client==5.4.0
-    # via -r requirements/base.txt
+    # via -r base.txt
 idna==3.2
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   requests
 kombu==4.6.11
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   celery
 newrelic==7.0.0.166
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-django-utils
 pbr==5.6.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   stevedore
 psutil==5.8.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-django-utils
-pyjwt==2.2.0
+pyjwt==2.4.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-rest-api-client
 pytz==2021.3
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   celery
     #   django
 pyyaml==5.4.1
-    # via -r requirements/production.in
+    # via -r production.in
 redis==3.5.3
-    # via -r requirements/base.txt
+    # via -r base.txt
 requests==2.26.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-rest-api-client
     #   slumber
 six==1.16.0
-    # via -r requirements/base.txt
+    # via -r base.txt
 slumber==0.7.1
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-rest-api-client
 sqlparse==0.4.2
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   django
 stevedore==3.4.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-django-utils
 urllib3==1.26.7
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   requests
 vine==1.3.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   amqp
     #   celery
