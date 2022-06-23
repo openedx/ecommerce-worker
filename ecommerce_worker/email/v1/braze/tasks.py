@@ -1,14 +1,24 @@
 """
 This file contains celery task functionality for braze.
 """
+from operator import itemgetter
 
+import braze.exceptions as edx_braze_exceptions
 from celery.utils.log import get_task_logger
 
-from ecommerce_worker.email.v1.braze.client import get_braze_client, get_braze_configuration
+from ecommerce_worker.email.v1.braze.client import (
+    get_braze_client,
+    get_braze_configuration,
+    EdxBrazeClient,
+)
 from ecommerce_worker.email.v1.braze.exceptions import BrazeError, BrazeRateLimitError, BrazeInternalServerError
 from ecommerce_worker.email.v1.utils import update_assignment_email_status
 
 logger = get_task_logger(__name__)
+
+# Use a smaller countdown for the offer usage task,
+# since the mgmt command that executes it blocks until the task is done/failed.
+OFFER_USAGE_RETRY_DELAY_SECONDS = 10
 
 
 def send_offer_assignment_email_via_braze(self, user_email, offer_assignment_id, subject, email_body, sender_alias,
@@ -105,41 +115,54 @@ def send_offer_update_email_via_braze(self, user_email, subject, email_body, sen
         )
 
 
-def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to, attachments, site_code):
+def send_offer_usage_email_via_braze(
+    self, lms_user_ids_by_email, subject, email_body_variables, site_code, campaign_id=None
+):
     """
     Sends the offer usage email via braze.
 
     Args:
         self: Ignore.
-        emails (str): comma separated emails.
+        lms_user_ids_by_email (dict): Map of recipient email addresses to LMS user ids.
         subject (str): Email subject.
-        email_body (str): The body of the email.
-        reply_to (str): Enterprise Customer reply to address for email reply.
-        attachments (list): File attachment list with dicts having 'file_name' and 'url' keys.
+        email_body_variables (dict): key-value pairs that are injected into Braze email template for personalization.
         site_code (str): Identifier of the site sending the email.
+        campaign_id (str): Identifier of Braze API-triggered campaign to send message through; defaults
+            to config.ENTERPRISE_CODE_USAGE_CAMPAIGN_ID
     """
     config = get_braze_configuration(site_code)
     try:
-        user_emails = list(emails.strip().split(","))
-        braze_client = get_braze_client(site_code)
-        _send_braze_message(
-            braze_client,
-            email_ids=user_emails,
-            subject=subject,
-            body=email_body,
-            reply_to=reply_to,
-            attachments=attachments,
-            campaign_id=config.get('ENTERPRISE_CODE_USAGE_CAMPAIGN_ID'),
-            message_variation_id=config.get('ENTERPRISE_CODE_USAGE_MESSAGE_VARIATION_ID'),
-        )
-    except (BrazeRateLimitError, BrazeInternalServerError) as exc:
-        raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),
-                         max_retries=config.get('BRAZE_RETRY_ATTEMPTS')) from exc
-    except BrazeError:
+        braze_client = EdxBrazeClient(site_code)
+
+        message_kwargs = {
+            'campaign_id': campaign_id or config.get('ENTERPRISE_CODE_USAGE_CAMPAIGN_ID'),
+            'recipients': [],
+            'emails': [],
+            'trigger_properties': {
+                'subject': subject,
+                **email_body_variables,
+            },
+        }
+
+        for user_email, lms_user_id in sorted(lms_user_ids_by_email.items(), key=itemgetter(0)):
+            if lms_user_id:
+                recipient = braze_client.create_recipient(user_email, lms_user_id)
+                message_kwargs['recipients'].append(recipient)
+            else:
+                message_kwargs['emails'].append(user_email)
+
+        braze_client.send_campaign_message(**message_kwargs)
+    except (edx_braze_exceptions.BrazeRateLimitError, edx_braze_exceptions.BrazeInternalServerError) as exc:
+        raise self.retry(
+            countdown=OFFER_USAGE_RETRY_DELAY_SECONDS,
+            max_retries=config.get('BRAZE_RETRY_ATTEMPTS')
+        ) from exc
+    except edx_braze_exceptions.BrazeError:
         logger.exception(
             '[Offer Usage] Error in offer usage notification with message --- '
-            '{message}'.format(message=email_body)
+            '{message}'.format(message=email_body_variables)
         )
+        raise
 
 
 def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, reply_to,  # pylint: disable=invalid-name
