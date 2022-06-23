@@ -10,6 +10,8 @@ import json
 import requests
 from celery.utils.log import get_task_logger
 
+from braze import client as edx_braze_client
+
 from ecommerce_worker.email.v1.braze.exceptions import (
     ConfigurationError,
     BrazeNotEnabled,
@@ -38,6 +40,23 @@ def get_braze_configuration(site_code):
     return config
 
 
+def validate_braze_config(config, site_code):
+    """
+    Raises if braze is not enabled or if either the
+    Rest or Webapp API keys are missing from the configuration.
+    """
+    # Return if Braze integration disabled
+    if not config.get('BRAZE_ENABLE'):
+        msg = f'Braze is not enabled for site {site_code}'
+        log.debug(msg)
+        raise BrazeNotEnabled(msg)
+
+    if not (config.get('BRAZE_REST_API_KEY') and config.get('BRAZE_WEBAPP_API_KEY')):
+        msg = f'Required keys missing for site {site_code}'
+        log.error(msg)
+        raise ConfigurationError(msg)
+
+
 def get_braze_client(site_code):
     """
     Returns a Braze client for the specified site.
@@ -52,44 +71,21 @@ def get_braze_client(site_code):
         BrazeNotEnabled: If Braze is not enabled for the specified site.
         ConfigurationError: If either the Braze API key or Webapp key are not set for the site.
     """
-    # Get configuration
     config = get_braze_configuration(site_code)
-
-    # Return if Braze integration disabled
-    if not config.get('BRAZE_ENABLE'):
-        msg = f'Braze is not enabled for site {site_code}'
-        log.debug(msg)
-        raise BrazeNotEnabled(msg)
-
-    rest_api_key = config.get('BRAZE_REST_API_KEY')
-    webapp_api_key = config.get('BRAZE_WEBAPP_API_KEY')
-    rest_api_url = config.get('REST_API_URL')
-    messages_send_endpoint = config.get('MESSAGES_SEND_ENDPOINT')
-    email_bounce_endpoint = config.get('EMAIL_BOUNCE_ENDPOINT')
-    new_alias_endpoint = config.get('NEW_ALIAS_ENDPOINT')
-    users_track_endpoint = config.get('USERS_TRACK_ENDPOINT')
-    export_id_endpoint = config.get('EXPORT_ID_ENDPOINT')
-    campaign_send_endpoint = config.get('CAMPAIGN_SEND_ENDPOINT')
-    enterprise_campaign_id = config.get('ENTERPRISE_CAMPAIGN_ID')
-    from_email = config.get('FROM_EMAIL')
-
-    if not rest_api_key or not webapp_api_key:
-        msg = f'Required keys missing for site {site_code}'
-        log.error(msg)
-        raise ConfigurationError(msg)
+    validate_braze_config(config, site_code)
 
     return BrazeClient(
-        rest_api_key=rest_api_key,
-        webapp_api_key=webapp_api_key,
-        rest_api_url=rest_api_url,
-        messages_send_endpoint=messages_send_endpoint,
-        email_bounce_endpoint=email_bounce_endpoint,
-        new_alias_endpoint=new_alias_endpoint,
-        users_track_endpoint=users_track_endpoint,
-        export_id_endpoint=export_id_endpoint,
-        campaign_send_endpoint=campaign_send_endpoint,
-        enterprise_campaign_id=enterprise_campaign_id,
-        from_email=from_email,
+        rest_api_key=config.get('BRAZE_REST_API_KEY'),
+        webapp_api_key=config.get('BRAZE_WEBAPP_API_KEY'),
+        rest_api_url=config.get('REST_API_URL'),
+        messages_send_endpoint=config.get('MESSAGES_SEND_ENDPOINT'),
+        email_bounce_endpoint=config.get('EMAIL_BOUNCE_ENDPOINT'),
+        new_alias_endpoint=config.get('NEW_ALIAS_ENDPOINT'),
+        users_track_endpoint=config.get('USERS_TRACK_ENDPOINT'),
+        export_id_endpoint=config.get('EXPORT_ID_ENDPOINT'),
+        campaign_send_endpoint=config.get('CAMPAIGN_SEND_ENDPOINT'),
+        enterprise_campaign_id=config.get('ENTERPRISE_CAMPAIGN_ID'),
+        from_email=config.get('FROM_EMAIL'),
     )
 
 
@@ -526,3 +522,65 @@ class BrazeClient:
             return response["users"][0]["external_id"]
 
         return None
+
+
+class EdxBrazeClient(edx_braze_client.BrazeClient):
+    """
+    Wrapper around the edx-braze-client library BrazeClient class.
+    TODO: Deprecate ``BrazeClient`` above and use only this class
+    for Braze interactions.
+    """
+    def __init__(self, site_code):
+        config = get_braze_configuration(site_code)
+        validate_braze_config(config, site_code)
+
+        super().__init__(
+            api_key=config.get('BRAZE_REST_API_KEY'),
+            api_url=config.get('REST_API_URL'),
+            app_id=config.get('BRAZE_WEBAPP_API_KEY'),
+        )
+
+    def generate_mailto_link(self, emails):
+        """
+        Generate a mailto link for the given emails.
+        """
+        if emails:
+            return f'mailto:{",".join(emails)}'
+
+        return None
+
+    def create_recipient(
+        self,
+        user_email,
+        lms_user_id,
+        trigger_properties=None,
+    ):
+        """
+        Create a recipient object using the given user_email and lms_user_id.
+        """
+
+        user_alias = {
+            'alias_label': 'Enterprise',
+            'alias_name': user_email,
+        }
+
+        # Identify the user alias in case it already exists. This is necessary so
+        # we don't accidently create a duplicate Braze profile.
+        self.identify_users([{
+            'external_id': lms_user_id,
+            'user_alias' : user_alias
+        }])
+
+        attributes = {
+            "user_alias": user_alias,
+            "email": user_email,
+            "_update_existing_only": False,
+        }
+
+        return {
+            'external_user_id': lms_user_id,
+            'attributes': attributes,
+             # If a profile does not already exist, Braze will create a new profile before sending a message.
+            'send_to_existing_only': False,
+            'trigger_properties': trigger_properties or {},
+        }

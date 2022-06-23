@@ -4,7 +4,11 @@ This file contains celery task functionality for braze.
 
 from celery.utils.log import get_task_logger
 
-from ecommerce_worker.email.v1.braze.client import get_braze_client, get_braze_configuration
+from ecommerce_worker.email.v1.braze.client import (
+    get_braze_client,
+    get_braze_configuration,
+    EdxBrazeClient,
+)
 from ecommerce_worker.email.v1.braze.exceptions import BrazeError, BrazeRateLimitError, BrazeInternalServerError
 from ecommerce_worker.email.v1.utils import update_assignment_email_status
 
@@ -105,13 +109,15 @@ def send_offer_update_email_via_braze(self, user_email, subject, email_body, sen
         )
 
 
-def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to, attachments, site_code):
+def send_offer_usage_email_via_braze(
+        self, lms_user_ids_by_email, subject, email_body, reply_to, attachments, site_code
+):
     """
     Sends the offer usage email via braze.
 
     Args:
         self: Ignore.
-        emails (str): comma separated emails.
+        lms_user_ids_by_email (dict): Map of recipient email addresses to LMS user ids.
         subject (str): Email subject.
         email_body (str): The body of the email.
         reply_to (str): Enterprise Customer reply to address for email reply.
@@ -120,17 +126,19 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to
     """
     config = get_braze_configuration(site_code)
     try:
-        user_emails = list(emails.strip().split(","))
-        braze_client = get_braze_client(site_code)
-        _send_braze_message(
-            braze_client,
-            email_ids=user_emails,
-            subject=subject,
-            body=email_body,
-            reply_to=reply_to,
-            attachments=attachments,
+        braze_client = EdxBrazeClient(site_code)
+        for user_email, lms_user_id in lms_user_ids_by_email.items():
+            if lms_user_id:
+                braze_client.create_recipient(user_email, lms_user_id)
+
+        trigger_properties = {
+            'subject': subject,
+            'body': email_body,
+        }
+        braze_client.send_campaign_message(
             campaign_id=config.get('ENTERPRISE_CODE_USAGE_CAMPAIGN_ID'),
-            message_variation_id=config.get('ENTERPRISE_CODE_USAGE_MESSAGE_VARIATION_ID'),
+            emails=lms_user_ids_by_email.keys(),
+            trigger_properties=trigger_properties,
         )
     except (BrazeRateLimitError, BrazeInternalServerError) as exc:
         raise self.retry(countdown=config.get('BRAZE_RETRY_SECONDS'),

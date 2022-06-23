@@ -64,14 +64,16 @@ def send_offer_update_email(self, user_email, subject, email_body, sender_alias,
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_usage_email(self, emails, subject, email_body, reply_to='', attachments=[], site_code=None,  # pylint: disable=dangerous-default-value
-                           base_enterprise_url='') -> None:
+def send_offer_usage_email(
+        self, lms_user_ids_by_email, subject, email_body,
+        reply_to='', attachments=[], site_code=None, base_enterprise_url=''  # pylint: disable=dangerous-default-value
+) -> None:
     """
     Sends the offer usage email.
 
     Args:
         self: Ignore.
-        emails (str): comma separated emails.
+        lms_user_ids_by_email (dict): Map of user email to LMS user ids.
         subject (str): Email subject.
         email_body (str): The body of the email.
         reply_to (str): Enterprise Customer reply to address for email reply.
@@ -80,7 +82,9 @@ def send_offer_usage_email(self, emails, subject, email_body, reply_to='', attac
         base_enterprise_url (str): Url of the enterprise's learner portal
     """
     if is_braze_enabled(site_code):
-        send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to, attachments, site_code)
+        send_offer_usage_email_via_braze(
+            self, lms_user_ids_by_email, subject, email_body, reply_to, attachments, site_code
+        )
 
 
 @shared_task(bind=True, ignore_result=True)
