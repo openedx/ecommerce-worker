@@ -5,7 +5,7 @@ This repository is deprecated and in maintainence-only operation while we work o
 
 Although we have stopped integrating new contributions, we always appreciate security disclosures and patches sent to `security@edx.org <mailto:security@edx.org>`__
 
-edX Ecommerce Worker  |Build|_ |Codecov|_
+edX Ecommerce Worker |Build|_ |Codecov|_
 ==========================================
 .. |Build| image:: https://github.com/edx/ecommerce-worker/workflows/Python%20CI/badge.svg?branch=master
 .. _Build: https://github.com/edx/ecommerce-worker/actions?query=workflow%3A%22Python+CI%22
