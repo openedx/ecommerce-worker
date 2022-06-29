@@ -1,10 +1,13 @@
 """ Utility functions. """
 import string
+from json import JSONDecodeError
+from urllib.parse import urljoin
 
-from requests.exceptions import RequestException
+import requests
+from requests.exceptions import HTTPError
 
 from ecommerce_worker.email.v1.braze.client import is_braze_enabled, get_braze_client
-from ecommerce_worker.utils import get_ecommerce_client
+from ecommerce_worker.utils import get_access_token, get_configuration
 
 
 def update_assignment_email_status(offer_assignment_id, send_id, status, site_code=None):
@@ -18,17 +21,26 @@ def update_assignment_email_status(offer_assignment_id, send_id, status, site_co
     Returns:
         True or False based on model update status from Ecommerce api
     """
-    api = get_ecommerce_client(url_postfix='assignment-email/', site_code=site_code)
-    post_data = {
-        'offer_assignment_id': offer_assignment_id,
-        'send_id': send_id,
-        'status': status,
-    }
+
+    api_url = urljoin(get_configuration('ECOMMERCE_API_ROOT', site_code=site_code) + '/', 'assignment-email/status/')
     try:
-        api_response = api.status().post(post_data)
-    except RequestException:
+        headers = {'Authorization': f'JWT {get_access_token()}'}
+        post_data = {
+            'offer_assignment_id': offer_assignment_id,
+            'send_id': send_id,
+            'status': status,
+        }
+        response = requests.post(
+            api_url,
+            data=post_data,
+            headers=headers
+        )
+        response.raise_for_status()
+        data = response.json()
+    except (HTTPError, JSONDecodeError):
         return False
-    return bool(api_response.get('status') == 'updated')
+
+    return bool(data.get('status') == 'updated')
 
 
 def did_email_bounce(user_email, site_code=None) -> bool:
