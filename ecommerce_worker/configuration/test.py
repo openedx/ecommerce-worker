@@ -22,6 +22,9 @@ dictConfig(logger_config)
 
 
 # AUTHENTICATION
+JWT_SECRET_KEY = 'test-key'
+JWT_ISSUER = 'ecommerce_worker'
+
 ECOMMERCE_SERVICE_USERNAME = 'service'
 # END AUTHENTICATION
 

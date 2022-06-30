@@ -3,13 +3,12 @@
 import logging
 from unittest import TestCase
 from unittest.mock import patch, MagicMock, Mock
-from urllib.parse import urljoin
 
 import braze.exceptions as edx_braze_exceptions
 import ddt
 import responses
 from celery.exceptions import Retry
-from requests.exceptions import HTTPError
+from requests.exceptions import RequestException
 from testfixtures import LogCapture
 
 from ecommerce_worker.email.v1.braze.exceptions import (
@@ -23,7 +22,6 @@ from ecommerce_worker.email.v1.tasks import (
     send_offer_update_email,
     send_offer_usage_email,
 )
-from ecommerce_worker.utils import get_configuration
 
 
 LOG_NAME = 'ecommerce_worker.email.v1.braze.tasks'
@@ -98,10 +96,6 @@ class SendEmailsViaBrazeTests(TestCase):
         'reply_to': REPLY_TO,
         'site_code': SITE_CODE,
     }
-
-    OAUTH_ACCESS_TOKEN_URL = urljoin(
-        get_configuration('BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL') + '/', 'access_token/'
-    )
 
     def execute_task(self):
         """ Execute the send_offer_assignment_email task. """
@@ -281,12 +275,9 @@ class SendEmailsViaBrazeTests(TestCase):
         self.assertEqual(mock_update_assignment.call_count, 1)
 
     @responses.activate
-    @patch('ecommerce_worker.email.v1.utils.get_access_token')
-    @patch('ecommerce_worker.email.v1.utils.requests.post')
-    def test_update_assignment_exception(self, mock_access_token, mock_requests_post):
-        """
-        Verify a message is logged after an unsuccessful API call to update the status.
-        """
+    @patch('ecommerce_worker.email.v1.utils.get_ecommerce_client')
+    def test_update_assignment_exception(self, mock_get_ecommerce_client):
+        """ Verify a message is logged after an unsuccessful API call to update the status. """
         self.mock_braze_user_endpoints()
         success_response = {
             'dispatch_id': '66cdc28f8f082bc3074c0c79f',
@@ -299,12 +290,8 @@ class SendEmailsViaBrazeTests(TestCase):
             responses.POST,
             host,
             json=success_response,
-            status=201
-        )
-
-        mock_access_token.return_value.json.return_value = {'access_token': 'FAKE-access-token'}
-        mock_requests_post.return_value.raise_for_status.side_effect = HTTPError
-
+            status=201)
+        mock_get_ecommerce_client.status.side_effect = RequestException
         with LogCapture(level=logging.INFO) as log:
             self.execute_task()
         log.check_present(
