@@ -1,6 +1,5 @@
 import logging
 from logging.config import dictConfig
-import os
 
 import yaml
 
@@ -16,13 +15,12 @@ logger_config = get_logger_config(debug=True, dev_env=True, local_loglevel='DEBU
 dictConfig(logger_config)
 # END LOGGING
 
-if not os.environ.get('IGNORE_YAML_OVERRIDES'):
-    filename = get_overrides_filename('ECOMMERCE_WORKER_CFG')
-    with open(filename) as f:
-        config_from_yaml = yaml.load(f)
+filename = get_overrides_filename('ECOMMERCE_WORKER_CFG')
+with open(filename) as f:
+    config_from_yaml = yaml.load(f)
 
-    # Override base configuration with values from disk.
-    vars().update(config_from_yaml)
+# Override base configuration with values from disk.
+vars().update(config_from_yaml)
 
 # Apply any developer-defined overrides.
 try:

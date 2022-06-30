@@ -9,7 +9,7 @@ from urllib.parse import urlencode
 import ddt
 import responses
 
-from ecommerce_worker.email.v1.braze.client import get_braze_client, EdxBrazeClient
+from ecommerce_worker.email.v1.braze.client import get_braze_client
 from ecommerce_worker.email.v1.braze.exceptions import (
     BrazeClientError,
     BrazeNotEnabled,
@@ -19,32 +19,32 @@ from ecommerce_worker.email.v1.braze.exceptions import (
 )
 
 
-SITE_CODE = 'test'
-BRAZE_OVERRIDES = {
-    SITE_CODE: {
-        'BRAZE': {
-            'BRAZE_ENABLE': True,
-            'BRAZE_REST_API_KEY': 'rest_api_key',
-            'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
-            'REST_API_URL': 'https://rest.iad-06.braze.com',
-            'MESSAGES_SEND_ENDPOINT': '/messages/send',
-            'EMAIL_BOUNCE_ENDPOINT': '/email/hard_bounces',
-            'NEW_ALIAS_ENDPOINT': '/users/alias/new',
-            'USERS_TRACK_ENDPOINT': '/users/track',
-            'EXPORT_ID_ENDPOINT': '/users/export/ids',
-            'CAMPAIGN_SEND_ENDPOINT': '/campaigns/trigger/send',
-            'ENTERPRISE_CAMPAIGN_ID': '',
-            'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
-        }
-    }
-}
-
-
 @ddt.ddt
 class BrazeClientTests(TestCase):
     """
     Tests for Braze Client.
     """
+    SITE_CODE = 'test'
+    SITE_OVERRIDES_MODULE = 'ecommerce_worker.configuration.test.SITE_OVERRIDES'
+    BRAZE_OVERRIDES = {
+        SITE_CODE: {
+            'BRAZE': {
+                'BRAZE_ENABLE': True,
+                'BRAZE_REST_API_KEY': 'rest_api_key',
+                'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
+                'REST_API_URL': 'https://rest.iad-06.braze.com',
+                'MESSAGES_SEND_ENDPOINT': '/messages/send',
+                'EMAIL_BOUNCE_ENDPOINT': '/email/hard_bounces',
+                'NEW_ALIAS_ENDPOINT': '/users/alias/new',
+                'USERS_TRACK_ENDPOINT': '/users/track',
+                'EXPORT_ID_ENDPOINT': '/users/export/ids',
+                'CAMPAIGN_SEND_ENDPOINT': '/campaigns/trigger/send',
+                'ENTERPRISE_CAMPAIGN_ID': '',
+                'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
+            }
+        }
+    }
+
     def mock_braze_user_endpoints(self, users=[]):  # pylint: disable=dangerous-default-value
         """ Mock POST requests to the user alias, track and export endpoints. """
         host = 'https://rest.iad-06.braze.com/users/track'
@@ -75,17 +75,17 @@ class BrazeClientTests(TestCase):
         """
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=config)):
             with self.assertRaises(exc_class):
-                get_braze_client(SITE_CODE)
+                get_braze_client(self.SITE_CODE)
 
     def test_get_braze_client_with_braze_disabled(self):
         """
         Verify the method raises a BrazeNotEnabled if Braze is not enabled for the site.
         """
 
-        with mock.patch('ecommerce_worker.email.v1.braze.client.log.error') as mock_log_error:
+        with mock.patch('ecommerce_worker.email.v1.braze.client.log.debug') as mock_log:
             self.assert_get_braze_client_raises(BrazeNotEnabled, {'BRAZE_ENABLE': False})
 
-        mock_log_error.assert_called_once_with(f'Braze is not enabled for site {SITE_CODE}')
+        mock_log.assert_called_once_with(f'Braze is not enabled for site {self.SITE_CODE}')
 
     @ddt.data(
         {},
@@ -101,15 +101,15 @@ class BrazeClientTests(TestCase):
         with mock.patch('ecommerce_worker.email.v1.braze.client.log.error') as mock_log:
             self.assert_get_braze_client_raises(ConfigurationError, braze_config)
 
-        mock_log.assert_called_once_with(f'Required keys missing for site {SITE_CODE}')
+        mock_log.assert_called_once_with(f'Required keys missing for site {self.SITE_CODE}')
 
     def test_create_braze_alias(self):
         """
         Asserts an error is raised by a call to create_braze_alias.
         """
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(BrazeClientError):
                 client.create_braze_alias(recipient_emails=[])
 
@@ -132,9 +132,9 @@ class BrazeClientTests(TestCase):
             json=success_response,
             status=201
         )
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             response = client.send_message(
                 email_ids=['test1@example.com', 'test2@example.com'],
                 subject='Test Subject',
@@ -162,9 +162,9 @@ class BrazeClientTests(TestCase):
             json=success_response,
             status=201
         )
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             response = client.send_message(
                 ['test1@example.com', 'test2@example.com'],
                 'Test Subject',
@@ -196,9 +196,9 @@ class BrazeClientTests(TestCase):
             json=failure_response,
             status=status_code
         )
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(error):
                 response = client.send_message(  # pylint: disable=unused-variable
                     ['test1@example.com', 'test2@example.com'],
@@ -216,9 +216,9 @@ class BrazeClientTests(TestCase):
         """
         Verify that an error is raised for missing email parameters.
         """
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(BrazeClientError):
                 response = client.send_message(email, subject, body)  # pylint: disable=unused-variable
 
@@ -241,9 +241,9 @@ class BrazeClientTests(TestCase):
             json=success_response,
             status=201
         )
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             response = client.send_campaign_message(
                 ['test1@example.com', 'test2@example.com'],
                 'Test Subject',
@@ -275,9 +275,9 @@ class BrazeClientTests(TestCase):
             json=failure_response,
             status=status_code
         )
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(error):
                 response = client.send_campaign_message(  # pylint: disable=unused-variable
                     ['test1@example.com', 'test2@example.com'],
@@ -295,9 +295,9 @@ class BrazeClientTests(TestCase):
         """
         Verify that an error is raised for missing email parameters.
         """
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(BrazeClientError):
                 response = client.send_campaign_message(email, subject, body)  # pylint: disable=unused-variable
 
@@ -339,9 +339,9 @@ class BrazeClientTests(TestCase):
             json=response,
             status=200
         )
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             bounce = client.did_email_bounce(bounced_email)
             self.assertEqual(bounce, did_bounce)
 
@@ -370,9 +370,9 @@ class BrazeClientTests(TestCase):
             json=failure_response,
             status=status_code
         )
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(error):
                 client.did_email_bounce(bounced_email)
 
@@ -380,9 +380,9 @@ class BrazeClientTests(TestCase):
         """
         Verify that an error is raised for missing parameters.
         """
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(BrazeClientError):
                 client.did_email_bounce(email_id=None)
 
@@ -390,9 +390,9 @@ class BrazeClientTests(TestCase):
         """
         Asserts an error is raised by a call to get_braze_external_id.
         """
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             with self.assertRaises(BrazeClientError):
                 client.get_braze_external_id(email_id=None)
 
@@ -408,77 +408,8 @@ class BrazeClientTests(TestCase):
             json={"users": [{"external_id": "5261613"}], "message": "success"},
             status=201
         )
-        braze = BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
+        braze = self.BRAZE_OVERRIDES[self.SITE_CODE]['BRAZE']
         with patch('ecommerce_worker.email.v1.braze.client.get_braze_configuration', Mock(return_value=braze)):
-            client = get_braze_client(SITE_CODE)
+            client = get_braze_client(self.SITE_CODE)
             external_id = client.get_braze_external_id(email_id='test@example.com')
             self.assertEqual(external_id, '5261613')
-
-
-@ddt.ddt
-class EdxBrazeClientTests(TestCase):
-    """
-    Tests for the EdxBrazeClient wrapper class.
-    """
-    @ddt.data(
-        (
-            {'BRAZE_ENABLE': False},
-            BrazeNotEnabled,
-        ),
-        (
-            {
-                'BRAZE_REST_API_KEY': 'some-key',
-                'BRAZE_ENABLE': True,
-            },
-            ConfigurationError,
-        ),
-    )
-    @ddt.unpack
-    def test_braze_config_invalid(self, mock_config, expected_exception):
-        """
-        Asserts an error is raised when initializing an EdxBrazeClient for a config
-        that has Braze disabled or is missing a required key.
-        """
-        with patch(
-            'ecommerce_worker.email.v1.braze.client.get_braze_configuration',
-            Mock(return_value=mock_config),
-        ) as mock_braze_config:
-            with self.assertRaises(expected_exception):
-                EdxBrazeClient(SITE_CODE)
-
-            mock_braze_config.assert_called_once_with(SITE_CODE)
-
-    @patch(
-        'ecommerce_worker.email.v1.braze.client.get_braze_configuration',
-        return_value=BRAZE_OVERRIDES[SITE_CODE]['BRAZE']
-    )
-    def test_create_recipient(self, mock_get_braze_config):  # pylint: disable=unused-argument
-        """
-        Tests that create_recipient() calls the underlying identify_users() method
-        and returns a dictionary with expected keys and values.
-        """
-        user_email = 'curly@stooges.org'
-        lms_user_id = 777
-        trigger_properties = {'foo': 12}
-        with patch(
-            'ecommerce_worker.email.v1.braze.client.EdxBrazeClient.identify_users'
-        ) as mock_identify_users:
-            client = EdxBrazeClient(SITE_CODE)
-            actual_recipient = client.create_recipient(user_email, lms_user_id, trigger_properties)
-
-            expected_recipient = {
-                'attributes': {
-                    '_update_existing_only': False,
-                    'email': 'curly@stooges.org',
-                    'user_alias': {
-                        'alias_label': 'Enterprise',
-                        'alias_name': 'curly@stooges.org'
-                    }
-                },
-                'external_user_id': 777,
-                'send_to_existing_only': False,
-                'trigger_properties': {
-                    'foo': 12,
-                },
-            }
-            self.assertEqual(actual_recipient, expected_recipient)
