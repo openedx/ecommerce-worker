@@ -53,9 +53,8 @@ MAX_FULFILLMENT_RETRIES = 11
 # END ORDER FULFILLMENT
 
 # AUTHENTICATION
-BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL = 'http://localhost:18000/oauth2/'
-BACKEND_SERVICE_EDX_OAUTH2_KEY = 'ecommerce-backend-service-key'
-BACKEND_SERVICE_EDX_OAUTH2_SECRET = 'ecommerce-backend-service-secret'
+JWT_SECRET_KEY = 'insecure-secret-key'
+JWT_ISSUER = 'ecommerce_worker'
 
 ECOMMERCE_SERVICE_USERNAME = 'ecommerce_worker'
 # END AUTHENTICATION
