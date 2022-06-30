@@ -80,8 +80,6 @@ django-waffle==2.5.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
-edx-braze-client==0.1.4
-    # via -r requirements/base.txt
 edx-django-utils==5.0.0
     # via
     #   -r requirements/base.txt

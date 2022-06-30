@@ -36,8 +36,6 @@ django-crum==0.7.9
     # via edx-django-utils
 django-waffle==2.5.0
     # via edx-django-utils
-edx-braze-client==0.1.4
-    # via -r requirements/base.in
 edx-django-utils==5.0.0
     # via edx-rest-api-client
 edx-rest-api-client==5.5.0

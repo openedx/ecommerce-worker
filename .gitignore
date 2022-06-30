@@ -64,9 +64,6 @@ target/
 # Vim
 *.swp
 
-# Emacs
-*~
-
 # Local configuration overrides
 private.py
 
