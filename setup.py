@@ -36,7 +36,7 @@ def is_requirement(line):
 
 setup(
     name='edx-ecommerce-worker',
-    version='3.1.2',
+    version='3.3.0',
     description='Celery tasks supporting the operations of edX\'s ecommerce service',
     long_description=long_description,
     classifiers=[

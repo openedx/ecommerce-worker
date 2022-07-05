@@ -1,11 +1,13 @@
 """
 This file contains celery tasks for email marketing signal handler.
 """
+import logging
 
 from celery import shared_task
 
 from ecommerce_worker.email.v1.braze.client import is_braze_enabled
 from ecommerce_worker.email.v1.braze.tasks import (
+    send_api_triggered_offer_usage_email_via_braze,
     send_code_assignment_nudge_email_via_braze,
     send_offer_assignment_email_via_braze,
     send_offer_update_email_via_braze,
@@ -16,6 +18,8 @@ from ecommerce_worker.email.v1.braze.tasks import (
 # arguments, but current ones don't use all of them. And maybe future implementations will use them again. But
 # regardless, they are intentionally there as part of the public API, to be used or not by implementations.
 # pylint: disable=unused-argument
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, ignore_result=True)
@@ -36,9 +40,14 @@ def send_offer_assignment_email(self, user_email, offer_assignment_id, subject, 
         site_code (str): Identifier of the site sending the email.
         base_enterprise_url (str): Url for the enterprise learner portal.
     """
-    if is_braze_enabled(site_code):
-        send_offer_assignment_email_via_braze(
-            self, user_email, offer_assignment_id, subject, email_body, sender_alias, reply_to, attachments, site_code)
+    if not is_braze_enabled(site_code):
+        logger.error('Braze not enabled for site code {}'.format(site_code))
+        return
+
+    send_offer_assignment_email_via_braze(
+        self, user_email, offer_assignment_id, subject, email_body,
+        sender_alias, reply_to, attachments, site_code
+    )
 
 
 @shared_task(bind=True, ignore_result=True)
@@ -58,17 +67,24 @@ def send_offer_update_email(self, user_email, subject, email_body, sender_alias,
         attachments (list): File attachment list with dicts having 'file_name' and 'url' keys.
         base_enterprise_url (str): Enterprise learner portal url.
     """
-    if is_braze_enabled(site_code):
-        send_offer_update_email_via_braze(self, user_email, subject, email_body, sender_alias, reply_to, attachments,
-                                          site_code)
+    if not is_braze_enabled(site_code):
+        logger.error('Braze not enabled for site code {}'.format(site_code))
+        return
+
+    send_offer_update_email_via_braze(
+        self, user_email, subject, email_body, sender_alias, reply_to, attachments, site_code
+    )
 
 
 @shared_task(bind=True, ignore_result=True)
-def send_offer_usage_email(self, emails, subject, email_body, reply_to='', attachments=[], site_code=None,  # pylint: disable=dangerous-default-value
-                           base_enterprise_url='') -> None:
+def send_offer_usage_email(
+    self, emails, subject, email_body, reply_to='', attachments=None, site_code=None, base_enterprise_url=''
+) -> None:
     """
-    Sends the offer usage email.
+    DEPRECATED: Will soon be replaced with ``send_api_triggered_offer_usage_email`` below.
+    See https://2u-internal.atlassian.net/browse/ENT-5940
 
+    Sends the offer usage email.
     Args:
         self: Ignore.
         emails (str): comma separated emails.
@@ -80,7 +96,35 @@ def send_offer_usage_email(self, emails, subject, email_body, reply_to='', attac
         base_enterprise_url (str): Url of the enterprise's learner portal
     """
     if is_braze_enabled(site_code):
-        send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to, attachments, site_code)
+        send_offer_usage_email_via_braze(
+            self, emails, subject, email_body, reply_to, attachments or [], site_code,
+        )
+
+
+@shared_task(bind=True, ignore_result=True)
+def send_api_triggered_offer_usage_email(
+    self, lms_user_ids_by_email, subject, email_body_variables, site_code=None, campaign_id=None
+) -> None:
+    """
+    Sends a "digest" email to recipients defined on a ConditionalOffer
+    describing how much of the offer has been used.
+
+    Args:
+        self: Ignore.
+        lms_user_ids_by_email (dict): Map of user email to LMS user ids.
+        subject (str): Email subject.
+        email_body_variables (dict): key-value pairs that are injected into Braze email template for personalization.
+        site_code (str): Identifier of the site sending the email.
+        campaign_id (str): Identifier of Braze API-triggered campaign to send message through; defaults
+            to config.ENTERPRISE_CODE_USAGE_CAMPAIGN_ID
+    """
+    if not is_braze_enabled(site_code):
+        logger.error('Braze not enabled for site code {}'.format(site_code))
+        return
+
+    send_api_triggered_offer_usage_email_via_braze(
+        self, lms_user_ids_by_email, subject, email_body_variables, site_code, campaign_id,
+    )
 
 
 @shared_task(bind=True, ignore_result=True)
@@ -100,6 +144,10 @@ def send_code_assignment_nudge_email(self, email, subject, email_body, sender_al
         site_code (str): Identifier of the site sending the email.
         base_enterprise_url (str): Enterprise learner portal url.
     """
-    if is_braze_enabled(site_code):
-        send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, reply_to,
-                                                   attachments, site_code)
+    if not is_braze_enabled(site_code):
+        logger.error('Braze not enabled for site code {}'.format(site_code))
+        return
+
+    send_code_assignment_nudge_email_via_braze(
+        self, email, subject, email_body, sender_alias, reply_to, attachments, site_code
+    )

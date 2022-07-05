@@ -2,9 +2,10 @@
 
 import logging
 from unittest import TestCase
-from unittest.mock import patch, Mock
+from unittest.mock import patch, MagicMock, Mock
 from urllib.parse import urljoin
 
+import braze.exceptions as edx_braze_exceptions
 import ddt
 import responses
 from celery.exceptions import Retry
@@ -19,48 +20,59 @@ from ecommerce_worker.email.v1.braze.exceptions import (
 from ecommerce_worker.email.v1.tasks import (
     send_code_assignment_nudge_email,
     send_offer_assignment_email,
-    send_offer_update_email,
     send_offer_usage_email,
+    send_offer_update_email,
+    send_api_triggered_offer_usage_email,
 )
 from ecommerce_worker.utils import get_configuration
+
+
+LOG_NAME = 'ecommerce_worker.email.v1.braze.tasks'
+LOG_TASK_NAME = 'ecommerce_worker.email.v1.braze.tasks'
+USER_EMAIL = 'user@unknown.com'
+EMAILS = 'user@unknown.com, user1@example.com'
+LMS_USER_IDS_BY_EMAIL = {
+    'user@unknown.com': None,
+    'user1@example.com': 456,
+}
+OFFER_ASSIGNMENT_ID = '555'
+SEND_ID = '66cdc28f8f082bc3074c0c79f'
+SUBJECT = 'New edX course assignment'
+EMAIL_BODY = 'Template message with johndoe@unknown.com GIL7RUEOU7VHBH7Q ' \
+             'https://tempurl.url/enroll 3 2012-04-23'
+USAGE_EMAIL_BODY_VARIABLES = {
+    'FOO': 123,
+    'BAR': 555,
+}
+SENDER_ALIAS = 'edx Support Team'
+REPLY_TO = 'reply@edx.org'
+SITE_CODE = 'test'
+BRAZE_CONFIG = {
+    'BRAZE_ENABLE': True,
+    'BRAZE_REST_API_KEY': 'rest_api_key',
+    'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
+    'REST_API_URL': 'https://rest.iad-06.braze.com',
+    'MESSAGES_SEND_ENDPOINT': '/messages/send',
+    'EMAIL_BOUNCE_ENDPOINT': '/email/hard_bounces',
+    'NEW_ALIAS_ENDPOINT': '/users/alias/new',
+    'USERS_TRACK_ENDPOINT': '/users/track',
+    'EXPORT_ID_ENDPOINT': '/users/export/ids',
+    'CAMPAIGN_SEND_ENDPOINT': '/campaigns/trigger/send',
+    'ENTERPRISE_CAMPAIGN_ID': '',
+    'ENTERPRISE_CODE_ASSIGNMENT_CAMPAIGN_ID': 'the-code-assignment-campaign-id',
+    'ENTERPRISE_CODE_UPDATE_CAMPAIGN_ID': 'the-code-update-campaign-id',
+    'ENTERPRISE_CODE_USAGE_API_TRIGGERED_CAMPAIGN_ID': 'the-code-usage-api-triggerd-campaign-id',
+    'ENTERPRISE_CODE_USAGE_CAMPAIGN_ID': None,
+    'ENTERPRISE_CODE_NUDGE_CAMPAIGN_ID': '',  # cover case where a `campaign_id` kwarg is falsey.
+    'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
+    'BRAZE_RETRY_SECONDS': 3600,
+    'BRAZE_RETRY_ATTEMPTS': 6,
+}
 
 
 @ddt.ddt
 class SendEmailsViaBrazeTests(TestCase):
     """ Validates the email sending tasks with Braze api. """
-    LOG_NAME = 'ecommerce_worker.email.v1.braze.tasks'
-    LOG_TASK_NAME = 'ecommerce_worker.email.v1.braze.tasks'
-    USER_EMAIL = 'user@unknown.com'
-    EMAILS = 'user@unknown.com, user1@example.com'
-    OFFER_ASSIGNMENT_ID = '555'
-    SEND_ID = '66cdc28f8f082bc3074c0c79f'
-    SUBJECT = 'New edX course assignment'
-    EMAIL_BODY = 'Template message with johndoe@unknown.com GIL7RUEOU7VHBH7Q ' \
-                 'https://tempurl.url/enroll 3 2012-04-23'
-    SENDER_ALIAS = 'edx Support Team'
-    REPLY_TO = 'reply@edx.org'
-    SITE_CODE = 'test'
-    BRAZE_CONFIG = {
-        'BRAZE_ENABLE': True,
-        'BRAZE_REST_API_KEY': 'rest_api_key',
-        'BRAZE_WEBAPP_API_KEY': 'webapp_api_key',
-        'REST_API_URL': 'https://rest.iad-06.braze.com',
-        'MESSAGES_SEND_ENDPOINT': '/messages/send',
-        'EMAIL_BOUNCE_ENDPOINT': '/email/hard_bounces',
-        'NEW_ALIAS_ENDPOINT': '/users/alias/new',
-        'USERS_TRACK_ENDPOINT': '/users/track',
-        'EXPORT_ID_ENDPOINT': '/users/export/ids',
-        'CAMPAIGN_SEND_ENDPOINT': '/campaigns/trigger/send',
-        'ENTERPRISE_CAMPAIGN_ID': '',
-        'ENTERPRISE_CODE_ASSIGNMENT_CAMPAIGN_ID': 'the-code-assignment-campaign-id',
-        'ENTERPRISE_CODE_UPDATE_CAMPAIGN_ID': 'the-code-update-campaign-id',
-        'ENTERPRISE_CODE_USAGE_CAMPAIGN_ID': 'the-code-usage-campaign-id',
-        'ENTERPRISE_CODE_NUDGE_CAMPAIGN_ID': '',  # cover case where a `campaign_id` kwarg is falsey.
-        'FROM_EMAIL': '<edx-for-business-no-reply@info.edx.org>',
-        'BRAZE_RETRY_SECONDS': 3600,
-        'BRAZE_RETRY_ATTEMPTS': 6,
-    }
-
     ASSIGNMENT_TASK_KWARGS = {
         'user_email': USER_EMAIL,
         'offer_assignment_id': OFFER_ASSIGNMENT_ID,
@@ -103,29 +115,26 @@ class SendEmailsViaBrazeTests(TestCase):
 
     def execute_task(self):
         """ Execute the send_offer_assignment_email task. """
-        with patch('ecommerce_worker.configuration.test.BRAZE', self.BRAZE_CONFIG):
+        with patch('ecommerce_worker.configuration.test.BRAZE', BRAZE_CONFIG):
             send_offer_assignment_email(**self.ASSIGNMENT_TASK_KWARGS)
 
     def mock_braze_user_endpoints(self):
         """ Mock POST requests to the user alias and track endpoints. """
-        host = 'https://rest.iad-06.braze.com/users/track'
         responses.add(
             responses.POST,
-            host,
+            'https://rest.iad-06.braze.com/users/track',
             json={'message': 'success'},
             status=201
         )
-        host = 'https://rest.iad-06.braze.com/users/alias/new'
         responses.add(
             responses.POST,
-            host,
+            'https://rest.iad-06.braze.com/users/alias/new',
             json={'message': 'success'},
             status=201
         )
-        host = 'https://rest.iad-06.braze.com/users/export/ids'
         responses.add(
             responses.POST,
-            host,
+            'https://rest.iad-06.braze.com/users/export/ids',
             json={"users": [], "message": "success"},
             status=201
         )
@@ -140,18 +149,18 @@ class SendEmailsViaBrazeTests(TestCase):
     @ddt.unpack
     def test_client_instantiation_error(self, task, task_kwargs, logger_prefix, log_message):
         """ Verify no message is sent if an error occurs while instantiating the Braze API client. """
-        with patch('ecommerce_worker.configuration.test.BRAZE', self.BRAZE_CONFIG):
+        with patch('ecommerce_worker.configuration.test.BRAZE', BRAZE_CONFIG):
             with LogCapture(level=logging.INFO) as log:
                 task(**task_kwargs)
         log.check(
             (
-                self.LOG_NAME,
+                LOG_NAME,
                 'ERROR',
                 '[{logger_prefix}] Error in offer {log_message} notification with message --- '
                 '{message}'.format(
                     logger_prefix=logger_prefix,
                     log_message=log_message,
-                    message=self.EMAIL_BODY
+                    message=EMAIL_BODY
                 )
             ),
         )
@@ -166,14 +175,14 @@ class SendEmailsViaBrazeTests(TestCase):
     @ddt.unpack
     def test_api_client_error(self, task, task_kwargs, logger_prefix, log_message, mock_log):
         """ Verify API client errors are logged. """
-        with patch('ecommerce_worker.configuration.test.BRAZE', self.BRAZE_CONFIG):
+        with patch('ecommerce_worker.configuration.test.BRAZE', BRAZE_CONFIG):
             task(**task_kwargs)
         mock_log.assert_called_once_with(
             '[{logger_prefix}] Error in offer {log_message} notification with message --- '
             '{message}'.format(
                 logger_prefix=logger_prefix,
                 log_message=log_message,
-                message=self.EMAIL_BODY
+                message=EMAIL_BODY
             )
         )
 
@@ -199,7 +208,7 @@ class SendEmailsViaBrazeTests(TestCase):
             json=failure_response,
             status=429
         )
-        with patch('ecommerce_worker.configuration.test.BRAZE', self.BRAZE_CONFIG):
+        with patch('ecommerce_worker.configuration.test.BRAZE', BRAZE_CONFIG):
             with self.assertRaises((BrazeRateLimitError, Retry)):
                 task(**task_kwargs)
 
@@ -225,7 +234,7 @@ class SendEmailsViaBrazeTests(TestCase):
             json=failure_response,
             status=500
         )
-        with patch('ecommerce_worker.configuration.test.BRAZE', self.BRAZE_CONFIG):
+        with patch('ecommerce_worker.configuration.test.BRAZE', BRAZE_CONFIG):
             with self.assertRaises((BrazeInternalServerError, Retry)):
                 task(**task_kwargs)
 
@@ -253,7 +262,7 @@ class SendEmailsViaBrazeTests(TestCase):
             host,
             json=success_response,
             status=201)
-        with patch('ecommerce_worker.configuration.test.BRAZE', self.BRAZE_CONFIG):
+        with patch('ecommerce_worker.configuration.test.BRAZE', BRAZE_CONFIG):
             task(**task_kwargs)
         self.assertIn('success', responses.calls[0].response.text)
 
@@ -278,10 +287,10 @@ class SendEmailsViaBrazeTests(TestCase):
             self.execute_task()
         log.check_present(
             (
-                self.LOG_TASK_NAME,
+                LOG_TASK_NAME,
                 'INFO',
                 '[Offer Assignment] Offer assignment notification sent with message --- '
-                '{message}'.format(message=self.EMAIL_BODY)
+                '{message}'.format(message=EMAIL_BODY)
             ),
         )
         self.assertEqual(mock_update_assignment.call_count, 1)
@@ -315,12 +324,112 @@ class SendEmailsViaBrazeTests(TestCase):
             self.execute_task()
         log.check_present(
             (
-                self.LOG_TASK_NAME,
+                LOG_TASK_NAME,
                 'ERROR',
                 '[Offer Assignment] An error occurred while updating email status data for offer {token_offer} and '
                 'email {token_email} via the ecommerce API.'.format(
-                    token_offer=self.OFFER_ASSIGNMENT_ID,
-                    token_email=self.USER_EMAIL
+                    token_offer=OFFER_ASSIGNMENT_ID,
+                    token_email=USER_EMAIL
                 )
             )
+        )
+
+    def test_braze_not_enabled(self):
+        """
+        Test that tasks do nothing when Braze is not enabled.
+        """
+        # pylint: disable=unnecessary-comprehension
+        disabled_config = {key: value for key, value in BRAZE_CONFIG.items()}
+        disabled_config['BRAZE_ENABLE'] = False
+        for task, braze_task_name, kwargs in (
+            (send_code_assignment_nudge_email, 'send_code_assignment_nudge_email_via_braze', self.NUDGE_TASK_KWARGS),
+            (send_offer_usage_email, 'send_offer_usage_email_via_braze', self.USAGE_TASK_KWARGS),
+            (send_offer_assignment_email, 'send_offer_assignment_email_via_braze', self.ASSIGNMENT_TASK_KWARGS),
+            (send_offer_update_email, 'send_offer_update_email_via_braze', self.UPDATE_TASK_KWARGS),
+        ):
+            task_path = 'ecommerce_worker.email.v1.tasks.{}'.format(braze_task_name)
+            with patch(task_path) as mock_braze_task:
+                task(**kwargs)
+                self.assertFalse(mock_braze_task.called)
+
+
+@ddt.ddt
+class OfferUsageEmailTests(TestCase):
+    """
+    Separate test class for the offer usage email task, since it utilizes
+    edx-braze-client.
+    """
+    USAGE_TASK_KWARGS = {
+        'lms_user_ids_by_email': LMS_USER_IDS_BY_EMAIL,
+        'subject': SUBJECT,
+        'email_body_variables': USAGE_EMAIL_BODY_VARIABLES,
+        'site_code': SITE_CODE,
+    }
+
+    def test_braze_not_enabled(self):
+        """
+        Test that this task does nothing when Braze is not enabled.
+        """
+        # pylint: disable=unnecessary-comprehension
+        disabled_config = {key: value for key, value in BRAZE_CONFIG.items()}
+        disabled_config['BRAZE_ENABLE'] = False
+        task_path = 'ecommerce_worker.email.v1.tasks.send_api_triggered_offer_usage_email_via_braze'
+        with patch(task_path) as mock_braze_task:
+            send_api_triggered_offer_usage_email(**self.USAGE_TASK_KWARGS)
+            self.assertFalse(mock_braze_task.called)
+
+    @patch('ecommerce_worker.email.v1.braze.tasks.EdxBrazeClient', return_value=MagicMock())
+    @ddt.data(
+        edx_braze_exceptions.BrazeRateLimitError,
+        edx_braze_exceptions.BrazeInternalServerError,
+    )
+    def test_api_error_with_retry(self, exception, mock_client):
+        """ Verify the task is rescheduled if an expected API error occurs, and the request can be retried. """
+        mock_client.return_value.send_campaign_message.side_effect = exception('msg')
+        with patch('ecommerce_worker.configuration.test.BRAZE', BRAZE_CONFIG):
+            with self.assertRaises((exception, Retry)):
+                send_api_triggered_offer_usage_email(**self.USAGE_TASK_KWARGS)
+
+    @patch('ecommerce_worker.email.v1.braze.tasks.EdxBrazeClient', return_value=MagicMock())
+    def test_api_generic_braze_error(self, mock_client):
+        """ Verify the task raises a BrazeError for other types of exceptions. """
+        mock_client.return_value.send_campaign_message.side_effect = edx_braze_exceptions.BrazeError('msg')
+        with patch('ecommerce_worker.configuration.test.BRAZE', BRAZE_CONFIG):
+            with self.assertRaises(edx_braze_exceptions.BrazeError):
+                send_api_triggered_offer_usage_email(**self.USAGE_TASK_KWARGS)
+
+    @patch('ecommerce_worker.email.v1.braze.tasks.EdxBrazeClient', return_value=MagicMock(), autospec=True)
+    @ddt.data(
+        None,
+        'custom-campaign-id',
+    )
+    def test_successful_usage_email(self, campaign_id, mock_client):
+        """ Verify the task successfully calls send_campaign_message() and create_recipient(). """
+        mock_client.reset_mock()
+
+        def mock_create_recipient(user_email, lms_user_id):
+            return {'user_email': user_email, 'lms_user_id': lms_user_id}
+
+        client = mock_client.return_value
+        client.create_recipient.side_effect = mock_create_recipient
+
+        with patch('ecommerce_worker.configuration.test.BRAZE', BRAZE_CONFIG):
+            send_api_triggered_offer_usage_email(campaign_id=campaign_id, **self.USAGE_TASK_KWARGS)
+
+        client.create_recipient.assert_called_once_with(
+            'user1@example.com', 456,
+        )
+
+        expected_trigger_properties = {
+            'subject': 'New edX course assignment',
+            **USAGE_EMAIL_BODY_VARIABLES,
+        }
+        expected_campaign_id = campaign_id or BRAZE_CONFIG['ENTERPRISE_CODE_USAGE_API_TRIGGERED_CAMPAIGN_ID']
+        client.send_campaign_message.assert_called_once_with(
+            campaign_id=expected_campaign_id,
+            recipients=[
+                {'user_email': 'user1@example.com', 'lms_user_id': 456}
+            ],
+            emails=['user@unknown.com'],
+            trigger_properties=expected_trigger_properties,
         )

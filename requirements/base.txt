@@ -27,6 +27,8 @@ django==3.2.8
     #   -c requirements/constraints.txt
     #   django-crum
     #   edx-django-utils
+edx-braze-client==0.1.4
+    # via -r requirements/base.in
 edx-django-utils==4.4.0
     # via edx-rest-api-client
 edx-rest-api-client==5.4.0

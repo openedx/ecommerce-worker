@@ -42,6 +42,8 @@ django==3.2.8
     #   -r requirements/base.txt
     #   django-crum
     #   edx-django-utils
+edx-braze-client==0.1.4
+    # via -r requirements/base.txt
 edx-django-utils==4.4.0
     # via
     #   -r requirements/base.txt
