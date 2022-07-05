@@ -15,6 +15,7 @@ class EmailApiTests(TestCase):
         """
         assert [k for k, v in getmembers(api) if not k.startswith('_')] == [
             'did_email_bounce',
+            'send_api_triggered_offer_usage_email',
             'send_code_assignment_nudge_email',
             'send_offer_assignment_email',
             'send_offer_update_email',

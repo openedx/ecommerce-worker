@@ -5,6 +5,7 @@
 
 # Celery tasks
 from .tasks import (
+    send_api_triggered_offer_usage_email,
     send_code_assignment_nudge_email,
     send_offer_assignment_email,
     send_offer_update_email,
