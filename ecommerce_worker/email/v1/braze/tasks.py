@@ -192,6 +192,9 @@ def send_api_triggered_offer_usage_email_via_braze(
                 message_kwargs['emails'].append(user_email)
 
         braze_client.send_campaign_message(**message_kwargs)
+        logger.info(
+            'Sent a Braze API-triggered enterprise offer campaign message with kwargs: {}'.format(message_kwargs)
+        )
     except (edx_braze_exceptions.BrazeRateLimitError, edx_braze_exceptions.BrazeInternalServerError) as exc:
         raise self.retry(
             countdown=OFFER_USAGE_RETRY_DELAY_SECONDS,
