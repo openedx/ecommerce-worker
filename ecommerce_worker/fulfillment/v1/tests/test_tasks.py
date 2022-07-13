@@ -1,13 +1,13 @@
 """Tests of fulfillment tasks."""
 # pylint: disable=no-value-for-parameter
-from unittest import TestCase
+from unittest import TestCase, mock
+from urllib.parse import urljoin
 
-from celery.exceptions import Ignore
 import ddt
+import responses
+from celery.exceptions import Ignore
 from edx_rest_api_client import exceptions
-import httpretty
-import jwt
-import mock
+from requests.exceptions import HTTPError
 
 # Ensures that a Celery app is initialized when tests are run.
 from ecommerce_worker import celery_app  # pylint: disable=unused-import
@@ -17,93 +17,129 @@ from ecommerce_worker.utils import get_configuration
 
 @ddt.ddt
 class OrderFulfillmentTaskTests(TestCase):
-    """Tests of the order fulfillment task."""
+    """
+    Tests of the order fulfillment task.
+    """
     ORDER_NUMBER = 'FAKE-123456'
-    API_URL = '{root}/orders/{number}/fulfill/'.format(
-        root=get_configuration('ECOMMERCE_API_ROOT').strip('/'),
-        number=ORDER_NUMBER
+    API_URL = urljoin(get_configuration('ECOMMERCE_API_ROOT') + '/', f'orders/{ORDER_NUMBER}/fulfill/')
+    OAUTH_ACCESS_TOKEN_URL = urljoin(
+        get_configuration('BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL') + '/', 'access_token/'
     )
+    ACCESS_TOKEN = 'FAKE-access-token'
+
+    def setUp(self):
+        super().setUp()
+        self.mock_access_token_api()
+
+    def mock_access_token_api(self, status=200):
+        """
+        Mock POST requests to retrieve an access token for this site's service user.
+        """
+        responses.add(
+            responses.POST,
+            self.OAUTH_ACCESS_TOKEN_URL,
+            status=status,
+            json={
+                'access_token': self.ACCESS_TOKEN
+            }
+        )
 
     @ddt.data(
         'ECOMMERCE_API_ROOT',
         'MAX_FULFILLMENT_RETRIES',
-        'JWT_SECRET_KEY',
-        'JWT_ISSUER',
-        'ECOMMERCE_SERVICE_USERNAME'
+        'BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL',
+        'BACKEND_SERVICE_EDX_OAUTH2_KEY',
+        'BACKEND_SERVICE_EDX_OAUTH2_SECRET'
     )
     def test_requires_configuration(self, setting):
-        """Verify that the task refuses to run without the configuration it requires."""
+        """
+        Verify that the task refuses to run without the configuration it requires.
+        """
         with mock.patch('ecommerce_worker.configuration.test.' + setting, None):
             with self.assertRaises(RuntimeError):
                 fulfill_order(self.ORDER_NUMBER)
 
-    @httpretty.activate
+    @responses.activate
     def test_fulfillment_success(self):
-        """Verify that the task exits without an error when fulfillment succeeds."""
-        httpretty.register_uri(httpretty.PUT, self.API_URL, status=200, body={})
+        """
+        Verify that the task exits without an error when fulfillment succeeds.
+        """
+        responses.add(responses.PUT, self.API_URL, status=200, body="{}")
 
         result = fulfill_order.delay(self.ORDER_NUMBER).get()
         self.assertIsNone(result)
 
         # Validate the value of the HTTP Authorization header.
-        last_request = httpretty.last_request()
-        token = last_request.headers.get('authorization').split()[1]
-        payload = jwt.decode(token, get_configuration('JWT_SECRET_KEY'))
-        self.assertEqual(payload['username'], get_configuration('ECOMMERCE_SERVICE_USERNAME'))
+        last_request = responses.calls[-1].request
+        token = last_request.headers.get('Authorization').split()[1]
+        self.assertEqual(token, self.ACCESS_TOKEN)
 
-    @httpretty.activate
+    @responses.activate
     def test_fulfillment_not_possible(self):
-        """Verify that the task exits without an error when fulfillment is not possible."""
-        httpretty.register_uri(httpretty.PUT, self.API_URL, status=406, body={})
+        """
+        Verify that the task exits without an error when fulfillment is not possible.
+        """
+        responses.add(responses.PUT, self.API_URL, status=406, body="{}")
 
         with self.assertRaises(Ignore):
             fulfill_order(self.ORDER_NUMBER)
 
-    @httpretty.activate
-    def test_fulfillment_unknown_client_error(self):
+    @responses.activate
+    def test_fulfillment_connection_error(self):
         """
-        Verify that the task raises an exception when fulfillment fails because of an
-        unknown client error.
+        Verify that the task raises an exception when fulfillment fails because of connection error.
         """
-        httpretty.register_uri(httpretty.PUT, self.API_URL, status=404, body={})
+        responses.add(responses.PUT, self.API_URL, status=404, body="{}")
 
-        with self.assertRaises(exceptions.HttpClientError):
+        with self.assertRaises(HTTPError):
             fulfill_order(self.ORDER_NUMBER)
 
-    @httpretty.activate
-    def test_fulfillment_unknown_client_error_retry_success(self):
-        """Verify that the task is capable of successfully retrying after client error."""
-        httpretty.register_uri(httpretty.PUT, self.API_URL, responses=[
-            httpretty.Response(status=404, body={}),
-            httpretty.Response(status=200, body={}),
-        ])
+    @responses.activate
+    def test_fulfillment_connection_error_retry_success(self):
+        """
+        Verify that the task is capable of successfully retrying after connection error.
+        """
+        responses.add(
+            responses.Response(responses.PUT, self.API_URL, status=404, body="{}"),
+        )
+        responses.add(
+            responses.Response(responses.PUT, self.API_URL, status=200, body="{}"),
+        )
 
         result = fulfill_order.delay(self.ORDER_NUMBER).get()
         self.assertIsNone(result)
 
-    @httpretty.activate
+    @responses.activate
     def test_fulfillment_failure(self):
-        """Verify that the task raises an exception when fulfillment fails."""
-        httpretty.register_uri(httpretty.PUT, self.API_URL, status=500, body={})
+        """
+        Verify that the task raises an exception when fulfillment fails.
+        """
+        responses.add(responses.PUT, self.API_URL, status=500, body="{}")
 
-        with self.assertRaises(exceptions.HttpServerError):
+        with self.assertRaises(HTTPError):
             fulfill_order.delay(self.ORDER_NUMBER).get()
 
-    @httpretty.activate
+    @responses.activate
     def test_fulfillment_timeout(self):
-        """Verify that the task raises an exception when fulfillment times out."""
-        httpretty.register_uri(httpretty.PUT, self.API_URL, status=404, body=self._timeout_body)
+        """
+        Verify that the task raises an exception when fulfillment times out.
+        """
+        responses.add(responses.PUT, self.API_URL, status=404, body=exceptions.Timeout())
 
         with self.assertRaises(exceptions.Timeout):
             fulfill_order.delay(self.ORDER_NUMBER).get()
 
-    @httpretty.activate
+    @responses.activate
     def test_fulfillment_retry_success(self):
-        """Verify that the task is capable of successfully retrying after fulfillment failure."""
-        httpretty.register_uri(httpretty.PUT, self.API_URL, responses=[
-            httpretty.Response(status=500, body={}),
-            httpretty.Response(status=200, body={}),
-        ])
+        """
+        Verify that the task is capable of successfully retrying after fulfillment failure.
+        """
+        responses.add(
+            responses.Response(responses.PUT, self.API_URL, status=500, body="{}"),
+        )
+        responses.add(
+            responses.Response(responses.PUT, self.API_URL, status=200, body="{}"),
+        )
 
         result = fulfill_order.delay(self.ORDER_NUMBER).get()
         self.assertIsNone(result)
@@ -113,22 +149,16 @@ class OrderFulfillmentTaskTests(TestCase):
         [False, 'False']
     )
     @ddt.unpack
-    @httpretty.activate
+    @responses.activate
     def test_email_opt_in_parameter_sent(self, email_opt_in_bool, email_opt_in_str):
-        """Verify that the task correctly adds the email_opt_in parameter to the request."""
+        """
+        Verify that the task correctly adds the email_opt_in parameter to the request.
+        """
         email_opt_in_api_url = self.API_URL + '?email_opt_in=' + email_opt_in_str
-        httpretty.register_uri(httpretty.PUT, email_opt_in_api_url, status=200, body={})
+        responses.add(responses.PUT, email_opt_in_api_url, status=200, body="{}")
 
         result = fulfill_order.delay(self.ORDER_NUMBER, email_opt_in=email_opt_in_bool).get()
         self.assertIsNone(result)
 
-        last_request = httpretty.last_request()
-        self.assertIn('?email_opt_in=' + email_opt_in_str, last_request.path)
-        # QueryDicts store their values as lists in case multiple values are passed in.
-        # last_request.querystring is returned as a dict instead of a QueryDict
-        # so we have the grab the first element in the list to actually get the value.
-        self.assertEqual(last_request.querystring['email_opt_in'][0], email_opt_in_str)
-
-    def _timeout_body(self, request, uri, headers):  # pylint: disable=unused-argument
-        """Helper used to force httpretty to raise Timeout exceptions."""
-        raise exceptions.Timeout
+        last_request = responses.calls[-1].request
+        self.assertIn('?email_opt_in=' + email_opt_in_str, last_request.path_url)

@@ -1,0 +1,7 @@
+-c constraints.txt
+
+celery
+edx-braze-client
+edx-rest-api-client
+redis
+six

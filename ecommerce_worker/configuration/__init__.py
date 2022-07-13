@@ -14,7 +14,7 @@ def get_overrides_filename(variable):
     filename = os.environ.get(variable)
 
     if filename is None:
-        msg = 'Please set the {} environment variable.'.format(variable)
+        msg = f'Please set the {variable} environment variable.'
         raise EnvironmentError(msg)
 
     return filename

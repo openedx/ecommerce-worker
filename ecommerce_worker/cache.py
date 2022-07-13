@@ -4,10 +4,10 @@ This file contains a primitive cache
 import threading
 import time
 
-lock = threading.Lock()  # pylint: disable=invalid-name
+lock = threading.Lock()
 
 
-class CacheObject(object):
+class CacheObject:
     """Object saved in cache"""
     def __init__(self, value, duration):
         self.value = value
@@ -29,7 +29,7 @@ class Cache(dict):
         Returns:
             Cached object
         """
-        lock.acquire()
+        lock.acquire()  # pylint: disable=consider-using-with
         try:
             if key not in self:
                 return None
@@ -59,7 +59,7 @@ class Cache(dict):
             duration (int): time in seconds to keep object in cache
 
         """
-        lock.acquire()
+        lock.acquire()  # pylint: disable=consider-using-with
         try:
             self[key] = CacheObject(value, duration)
         finally:
