@@ -1,7 +1,14 @@
-edX Ecommerce Worker  |Travis|_ |Codecov|_
-==========================================
-.. |Travis| image:: https://travis-ci.org/edx/ecommerce-worker.svg?branch=master
-.. _Travis: https://travis-ci.org/edx/ecommerce-worker
+DEPRECATION WARNING 
+====================
+This repository is deprecated and in maintainence-only operation while we work on a replacement, please see `this announcement <https://discuss.openedx.org/t/deprecation-removal-ecommerce-service-depr-22/6839>`__ for more information.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Although we have stopped integrating new contributions, we always appreciate security disclosures and patches sent to `security@edx.org <mailto:security@edx.org>`__
+
+edX Ecommerce Worker  |Build|_ |Codecov|_
+=========================================
+.. |Build| image:: https://github.com/edx/ecommerce-worker/workflows/Python%20CI/badge.svg?branch=master
+.. _Build: https://github.com/edx/ecommerce-worker/actions?query=workflow%3A%22Python+CI%22
 
 .. |Codecov| image:: http://codecov.io/github/edx/ecommerce-worker/coverage.svg?branch=master
 .. _Codecov: http://codecov.io/github/edx/ecommerce-worker?branch=master
@@ -10,8 +17,8 @@ The Celery tasks contained herein are used to implement asynchronous order fulfi
 
 Prerequisites
 -------------
-* Python 2.7.x (not tested with Python 3.x)
-* Celery 3.1.x
+* Python 3.x
+* Celery 4.x
 * RabbitMQ 3.5.x
 
 Getting Started
@@ -61,7 +68,9 @@ The code in this repository is licensed under the AGPL unless otherwise noted. P
 How To Contribute
 -----------------
 
-Contributions are welcome. Please read `How To Contribute <https://github.com/edx/edx-platform/blob/master/CONTRIBUTING.rst>`_ for details. Even though it was written with ``edx-platform`` in mind, these guidelines should be followed for Open edX code in general.
+Anyone merging to this repository is expected to `release and monitor their changes <https://openedx.atlassian.net/wiki/spaces/RS/pages/1835106870/How+to+contribute+to+our+repositories>`__; if you are not able to do this DO NOT MERGE, please coordinate with someone who can to ensure that the changes are released.
+
+Please also read `How To Contribute <https://github.com/edx/edx-platform/blob/master/CONTRIBUTING.rst>`__. Even though it was written with ``edx-platform`` in mind, these guidelines should be followed for Open edX code in general.
 
 Reporting Security Issues
 -------------------------

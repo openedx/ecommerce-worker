@@ -1,9 +1,11 @@
 """Helper functions."""
-from __future__ import absolute_import
 import os
 import sys
+from urllib.parse import urljoin
 
-from edx_rest_api_client.client import EdxRestApiClient
+import requests
+from edx_rest_api_client.client import REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT
+from requests.exceptions import HTTPError, RequestException
 
 from ecommerce_worker.configuration import CONFIGURATION_MODULE
 
@@ -43,23 +45,40 @@ def get_configuration(variable, site_code=None):
                 setting_value = override_value
 
     if setting_value is None:
-        raise RuntimeError('Worker is improperly configured: {} is unset in {}.'.format(variable, module))
+        raise RuntimeError(f'Worker is improperly configured: {variable} is unset in {module}.')
     return setting_value
 
 
-def get_ecommerce_client(url_postfix='', site_code=None):
+def get_access_token():
     """
-    Get client for fetching data from ecommerce API.
-    Arguments:
-        site_code (str): (Optional) The SITE_OVERRIDES key to inspect for site-specific values
-        url_postfix (str): (Optional) The URL postfix value to append to the ECOMMERCE_API_ROOT value.
+    Returns an access token for this site's service user.
 
     Returns:
-        EdxRestApiClient object
+        str: JWT access token
     """
-    ecommerce_api_root = get_configuration('ECOMMERCE_API_ROOT', site_code=site_code)
-    signing_key = get_configuration('JWT_SECRET_KEY', site_code=site_code)
-    issuer = get_configuration('JWT_ISSUER', site_code=site_code)
-    service_username = get_configuration('ECOMMERCE_SERVICE_USERNAME', site_code=site_code)
-    return EdxRestApiClient(
-        ecommerce_api_root + url_postfix, signing_key=signing_key, issuer=issuer, username=service_username)
+    oauth_access_token_url = urljoin(
+        get_configuration('BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL') + '/', 'access_token/'
+    )
+    try:
+        post_data = {
+            'grant_type': 'client_credentials',
+            'client_id': get_configuration('BACKEND_SERVICE_EDX_OAUTH2_KEY'),
+            'client_secret': get_configuration('BACKEND_SERVICE_EDX_OAUTH2_SECRET'),
+            'token_type': 'jwt',
+        }
+        headers = {
+            'User-Agent': 'ecommerce-worker',
+        }
+        response = requests.post(
+            oauth_access_token_url,
+            data=post_data,
+            headers=headers,
+            timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT)
+        )
+        response.raise_for_status()
+        data = response.json()
+        access_token = data['access_token']
+    except (HTTPError, KeyError) as exc:
+        raise RequestException(response=response) from exc
+
+    return access_token

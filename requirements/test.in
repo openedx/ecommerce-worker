@@ -7,7 +7,7 @@ coverage
 ddt
 edx-lint
 mock
-pep8
+pycodestyle
 pylint
 pylint-django
 pylint-plugin-utils

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import logging
 from logging.config import dictConfig
 
@@ -9,18 +8,13 @@ logger = logging.getLogger(__name__)
 
 
 # CELERY
-BROKER_URL = 'amqp://'
+BROKER_URL = 'redis://'
 # END CELERY
 
 
 # ORDER FULFILLMENT
 ECOMMERCE_API_ROOT = 'http://localhost:18130/api/v2/'
 # END ORDER FULFILLMENT
-
-# AUTHENTICATION
-JWT_SECRET_KEY = 'insecure-secret-key'
-JWT_ISSUER = 'ecommerce_worker'
-# END AUTHENTICATION
 
 # LOGGING
 logger_config = get_logger_config(debug=True, dev_env=True, local_loglevel='DEBUG')

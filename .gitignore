@@ -64,6 +64,9 @@ target/
 # Vim
 *.swp
 
+# Emacs
+*~
+
 # Local configuration overrides
 private.py
 
@@ -71,3 +74,6 @@ private.py
 
 # pyenv
 .python-version
+
+# virtual env
+.venv/
