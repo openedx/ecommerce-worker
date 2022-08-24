@@ -3,10 +3,6 @@
 
 nick: ecmw
 openedx-release: {ref: master}
-owner: cpennington
-supporting_teams:
-    - edx/ecommerce
-    - edx/rev-team
 tags:
     - ecom
     - backend-service
