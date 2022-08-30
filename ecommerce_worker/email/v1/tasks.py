@@ -7,6 +7,7 @@ from celery import shared_task
 
 from ecommerce_worker.email.v1.braze.client import is_braze_enabled
 from ecommerce_worker.email.v1.braze.tasks import (
+    send_api_triggered_learner_coupon_code_email_via_braze,
     send_api_triggered_offer_usage_email_via_braze,
     send_code_assignment_nudge_email_via_braze,
     send_offer_assignment_email_via_braze,
@@ -150,4 +151,29 @@ def send_code_assignment_nudge_email(self, email, subject, email_body, sender_al
 
     send_code_assignment_nudge_email_via_braze(
         self, email, subject, email_body, sender_alias, reply_to, attachments, site_code
+    )
+
+
+@shared_task(bind=True, ignore_result=True)
+def send_learner_coupon_code_email(
+    self, user_email, lms_user_id, subject, email_body_variables, site_code, campaign_id
+) -> None:
+    """
+    Sends an  email informing a given learner (email) about a new code assignment, 
+    reminding them of the code assignment, or revoking the code assignment.
+    Args:
+        self: Bound celery task instance.
+        user_email: Recipient email addresses.
+        lms_user_id: LMS user id corresponding to this email address.
+        subject (str): Email subject.
+        email_body_variables (dict): key-value pairs that are injected into Braze email template for personalization.
+        site_code (str): Identifier of the site sending the email.
+        campaign_id (str): Identifier of Braze API-triggered campaign to send message through.
+    """
+    if not is_braze_enabled(site_code):
+        logger.error('Braze not enabled for site code {}'.format(site_code))
+        return
+
+    send_api_triggered_learner_coupon_code_email_via_braze(
+        self, user_email, lms_user_id, subject, email_body_variables, site_code, campaign_id,
     )

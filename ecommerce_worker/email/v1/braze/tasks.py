@@ -155,6 +155,33 @@ def send_offer_usage_email_via_braze(self, emails, subject, email_body, reply_to
         )
 
 
+def send_api_triggered_learner_coupon_code_email_via_braze(
+    self, user_email, lms_user_id, subject, email_body_variables, site_code, campaign_id
+):
+    """
+    Using Braze, send an API-triggered campaign email informing
+    a given learner (email) about a new code assignment, reminding them of the code assignment,
+    or revoking the code assignment.
+
+    Args:
+        self: Ignore - corresponds to celery bound task instance.
+        user_email: Recipient email addresses
+        lms_user_id: LMS user id corresponding to this email address.
+        subject (str): Email subject.
+        email_body_variables (dict): key-value pairs that are injected into Braze email template for personalization.
+        site_code (str): Identifier of the site sending the email.
+        campaign_id (str): Identifier of Braze API-triggered campaign via which the message is sent.
+    """
+    _send_braze_api_triggered_message(
+        self,
+        {user_email: lms_user_id},
+        subject,
+        email_body_variables,
+        site_code,
+        campaign_id,
+    )
+
+
 def send_api_triggered_offer_usage_email_via_braze(
     self, lms_user_ids_by_email, subject, email_body_variables, site_code, campaign_id=None
 ):
@@ -171,41 +198,15 @@ def send_api_triggered_offer_usage_email_via_braze(
             to config.ENTERPRISE_CODE_USAGE_CAMPAIGN_ID
     """
     config = get_braze_configuration(site_code)
-    try:
-        braze_client = EdxBrazeClient(site_code)
-
-        message_kwargs = {
-            'campaign_id': campaign_id or config.get('ENTERPRISE_CODE_USAGE_API_TRIGGERED_CAMPAIGN_ID'),
-            'recipients': [],
-            'emails': [],
-            'trigger_properties': {
-                'subject': subject,
-                **email_body_variables,
-            },
-        }
-
-        for user_email, lms_user_id in sorted(lms_user_ids_by_email.items(), key=itemgetter(0)):
-            if lms_user_id:
-                recipient = braze_client.create_recipient(user_email, lms_user_id)
-                message_kwargs['recipients'].append(recipient)
-            else:
-                message_kwargs['emails'].append(user_email)
-
-        braze_client.send_campaign_message(**message_kwargs)
-        logger.info(
-            'Sent a Braze API-triggered enterprise offer campaign message with kwargs: {}'.format(message_kwargs)
-        )
-    except (edx_braze_exceptions.BrazeRateLimitError, edx_braze_exceptions.BrazeInternalServerError) as exc:
-        raise self.retry(
-            countdown=OFFER_USAGE_RETRY_DELAY_SECONDS,
-            max_retries=config.get('BRAZE_RETRY_ATTEMPTS')
-        ) from exc
-    except edx_braze_exceptions.BrazeError:
-        logger.exception(
-            '[Offer Usage] Error in offer usage notification with message --- '
-            '{message}'.format(message=email_body_variables)
-        )
-        raise
+    _send_braze_api_triggered_message(
+        self,
+        lms_user_ids_by_email,
+        subject,
+        email_body_variables,
+        site_code,
+        campaign_id or config.get('ENTERPRISE_CODE_USAGE_API_TRIGGERED_CAMPAIGN_ID'),
+        OFFER_USAGE_RETRY_DELAY_SECONDS,
+    )
 
 
 def send_code_assignment_nudge_email_via_braze(self, email, subject, email_body, sender_alias, reply_to,  # pylint: disable=invalid-name
@@ -256,3 +257,47 @@ def _send_braze_message(braze_client, **kwargs):
     if 'campaign_id' in kwargs and not kwargs['campaign_id']:
         kwargs.pop('campaign_id')
     return braze_client.send_message(**kwargs)
+
+
+def _send_braze_api_triggered_message(
+    self, lms_user_ids_by_email, subject, email_body_variables, site_code, campaign_id, retry_delay=None,
+):
+    """
+    Helper to send an API-triggered campaign message.  Will build 
+    Braze recipient objects from the `lms_user_ids_by_email` dictionary.
+    """
+    config = get_braze_configuration(site_code)
+    try:
+        braze_client = EdxBrazeClient(site_code)
+
+        message_kwargs = {
+            'campaign_id': campaign_id,
+            'recipients': [],
+            'emails': [],
+            'trigger_properties': {
+                'subject': subject,
+                **email_body_variables,
+            },
+        }
+
+        for user_email, lms_user_id in sorted(lms_user_ids_by_email.items(), key=itemgetter(0)):
+            if lms_user_id:
+                recipient = braze_client.create_recipient(user_email, lms_user_id)
+                message_kwargs['recipients'].append(recipient)
+            else:
+                message_kwargs['emails'].append(user_email)
+
+        braze_client.send_campaign_message(**message_kwargs)
+        message_template = 'Sent a Braze API-triggered enterprise campaign message with kwargs: %s'
+        logger.info(message_template, message_kwargs)
+    except (edx_braze_exceptions.BrazeRateLimitError, edx_braze_exceptions.BrazeInternalServerError) as exc:
+        raise self.retry(
+            countdown=retry_delay or config.get('BRAZE_RETRY_SECONDS'),
+            max_retries=config.get('BRAZE_RETRY_ATTEMPTS')
+        ) from exc
+    except edx_braze_exceptions.BrazeError:
+        logger.exception(
+            'Error sending Braze API-triggered campaign message: %s',
+            message_kwargs,
+        )
+        raise
