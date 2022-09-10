@@ -49,7 +49,7 @@ setup(
         'Environment :: Web Environment',
     ],
     keywords='edx ecommerce worker',
-    url='https://github.com/edx/ecommerce-worker',
+    url='https://github.com/openedx/ecommerce-worker',
     author='edX',
     author_email='oscm@edx.org',
     license='AGPL',

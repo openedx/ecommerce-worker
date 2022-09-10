@@ -7,8 +7,8 @@ Although we have stopped integrating new contributions, we always appreciate sec
 
 edX Ecommerce Worker  |Build|_ |Codecov|_
 =========================================
-.. |Build| image:: https://github.com/edx/ecommerce-worker/workflows/Python%20CI/badge.svg?branch=master
-.. _Build: https://github.com/edx/ecommerce-worker/actions?query=workflow%3A%22Python+CI%22
+.. |Build| image:: https://github.com/openedx/ecommerce-worker/workflows/Python%20CI/badge.svg?branch=master
+.. _Build: https://github.com/openedx/ecommerce-worker/actions?query=workflow%3A%22Python+CI%22
 
 .. |Codecov| image:: http://codecov.io/github/edx/ecommerce-worker/coverage.svg?branch=master
 .. _Codecov: http://codecov.io/github/edx/ecommerce-worker?branch=master
@@ -24,7 +24,7 @@ Prerequisites
 Getting Started
 ---------------
 
-Most commands necessary to develop and run this app can be found in the included Makefile. These instructions assume a working integration between the `edX ecommerce service <https://github.com/edx/ecommerce>`_ and the LMS, with asynchronous fulfillment configured on the ecommerce service.
+Most commands necessary to develop and run this app can be found in the included Makefile. These instructions assume a working integration between the `edX ecommerce service <https://github.com/openedx/ecommerce>`_ and the LMS, with asynchronous fulfillment configured on the ecommerce service.
 
 To get started, create a new virtual environment and install the included requirements.
 
@@ -70,7 +70,7 @@ How To Contribute
 
 Anyone merging to this repository is expected to `release and monitor their changes <https://openedx.atlassian.net/wiki/spaces/RS/pages/1835106870/How+to+contribute+to+our+repositories>`__; if you are not able to do this DO NOT MERGE, please coordinate with someone who can to ensure that the changes are released.
 
-Please also read `How To Contribute <https://github.com/edx/edx-platform/blob/master/CONTRIBUTING.rst>`__. Even though it was written with ``edx-platform`` in mind, these guidelines should be followed for Open edX code in general.
+Please also read `How To Contribute <https://github.com/openedx/edx-platform/blob/master/CONTRIBUTING.rst>`__. Even though it was written with ``edx-platform`` in mind, these guidelines should be followed for Open edX code in general.
 
 Reporting Security Issues
 -------------------------
