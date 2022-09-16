@@ -287,7 +287,8 @@ disable =
 	
 	logging-fstring-interpolation,
 	unused-variable,
-	logging-format-interpolation
+	logging-format-interpolation,
+	no-self-use,
 
 [REPORTS]
 output-format = text
@@ -384,4 +385,4 @@ int-import-graph =
 [EXCEPTIONS]
 overgeneral-exceptions = Exception
 
-# 47f2e8c6aa40d5c5a3cc870181f7fee8905ba2a4
+# 59d9326f28f4990caa55290d72fb94119b02ac2f
