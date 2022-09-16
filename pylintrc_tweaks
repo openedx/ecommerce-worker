@@ -6,4 +6,5 @@ load-plugins = edx_lint.pylint
 [MESSAGES CONTROL]
 disable+=
     unused-variable,
-    logging-format-interpolation
+    logging-format-interpolation,
+    no-self-use,
