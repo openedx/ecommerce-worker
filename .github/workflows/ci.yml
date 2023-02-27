@@ -3,7 +3,8 @@ name: Python CI
 on:
   push:
     branches:
-    - master, 2u/project-theseus
+    - master
+    - 2u/project-theseus
     - /^\d+\.\d+(\.\d+)?(-\S*)?$/
   pull_request:
     branches:
