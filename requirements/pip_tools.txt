@@ -9,10 +9,10 @@ click==8.0.1
 pep517==0.11.0
     # via pip-tools
 pip-tools==6.3.0
-    # via -r requirements/pip_tools.in
+    # via -r pip_tools.in
 tomli==1.2.1
     # via pep517
-wheel==0.37.0
+wheel==0.38.1
     # via pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
