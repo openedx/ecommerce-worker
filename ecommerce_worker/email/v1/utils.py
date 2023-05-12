@@ -33,7 +33,8 @@ def update_assignment_email_status(offer_assignment_id, send_id, status, site_co
         response = requests.post(
             api_url,
             data=post_data,
-            headers=headers
+            headers=headers,
+            timeout=10
         )
         response.raise_for_status()
         data = response.json()
