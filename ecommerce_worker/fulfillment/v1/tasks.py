@@ -53,7 +53,8 @@ def fulfill_order(self, order_number, site_code=None, email_opt_in=False):
         response = requests.put(
             api_url,
             params=params,
-            headers=headers
+            headers=headers,
+            timeout=10
         )
         response.raise_for_status()
 
