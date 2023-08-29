@@ -15,7 +15,7 @@ dictConfig(logger_config)
 
 filename = get_overrides_filename('ECOMMERCE_WORKER_CFG')
 with open(filename) as f:
-    config_from_yaml = yaml.load(f)
+    config_from_yaml = yaml.safe_load(f)
 
 # Override base configuration with values from disk.
 vars().update(config_from_yaml)
