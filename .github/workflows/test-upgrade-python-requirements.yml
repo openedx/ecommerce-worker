@@ -101,15 +101,6 @@ jobs:
           --team-reviewers="$TEAM_REVIEWERS" \
           --delete-old-pull-requests --output-pr-url-for-github-action
 
-      - name: Debugging - After
-        run: |
-          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-          echo "TARGET_BRANCH: ${{ env.target_branch }}"
-          echo "USER_REVIEWERS: ${{ inputs.user_reviewers }}"
-          echo "TEAM_REVIEWERS: ${{ inputs.team_reviewers }}"
-          cd $GITHUB_WORKSPACE/testeng-ci
-          ls -a
-
       - name: Send failure notification
         if: ${{ failure() && inputs.email_address }}
         uses: dawidd6/action-send-mail@v3
@@ -122,6 +113,15 @@ jobs:
           to: ${{ inputs.email_address }}
           from: github-actions <github-actions@edx.org>
           body: Upgrade python requirements workflow in ${{github.repository}} failed! For details see "github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: After Debugging
+        run: |
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo "TARGET_BRANCH: ${{ env.target_branch }}"
+          echo "USER_REVIEWERS: ${{ inputs.user_reviewers }}"
+          echo "TEAM_REVIEWERS: ${{ inputs.team_reviewers }}"
+          cd $GITHUB_WORKSPACE/testeng-ci
+          ls -a
 
       - name: Send success notification
         if: ${{ inputs.send_success_notification && inputs.email_address }}
