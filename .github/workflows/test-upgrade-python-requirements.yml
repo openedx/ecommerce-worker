@@ -82,11 +82,8 @@ jobs:
           USER_REVIEWERS: ${{ inputs.user_reviewers }}
           TEAM_REVIEWERS: ${{ inputs.team_reviewers }}
         run: |
-          ls
-          echo "$GITHUB_WORKSPACE"
-          cd $GITHUB_WORKSPACE
-          ls
           cd $GITHUB_WORKSPACE/testeng-ci
+          python --version
           python -m jenkins.pull_request_creator --repo-root=$GITHUB_WORKSPACE \
           --target-branch="$TARGET_BRANCH" --base-branch-name="upgrade-python-requirements" \
           --commit-message="chore: Updating Python Requirements" --pr-title="Python Requirements Update" \
