@@ -74,11 +74,14 @@ jobs:
           cd $GITHUB_WORKSPACE/testeng-ci
           pip install -r requirements/base.txt
 
-      - name: Debugging
+      - name: Debugging - Before
         run: |
-          echo "TARGET_BRANCH: ${{ env.target_branch }}"
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-          ls -al $GITHUB_WORKSPACE/testeng-ci
+          echo "TARGET_BRANCH: ${{ env.target_branch }}"
+          echo "USER_REVIEWERS: ${{ inputs.user_reviewers }}"
+          echo "TEAM_REVIEWERS: ${{ inputs.team_reviewers }}"
+          cd $GITHUB_WORKSPACE/testeng-ci
+          ls -a
 
       - name: create pull request
         id: createpullrequest
@@ -97,6 +100,15 @@ jobs:
           --user-reviewers="$USER_REVIEWERS" \
           --team-reviewers="$TEAM_REVIEWERS" \
           --delete-old-pull-requests --output-pr-url-for-github-action
+
+      - name: Debugging - After
+        run: |
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo "TARGET_BRANCH: ${{ env.target_branch }}"
+          echo "USER_REVIEWERS: ${{ inputs.user_reviewers }}"
+          echo "TEAM_REVIEWERS: ${{ inputs.team_reviewers }}"
+          cd $GITHUB_WORKSPACE/testeng-ci
+          ls -a
 
       - name: Send failure notification
         if: ${{ failure() && inputs.email_address }}
