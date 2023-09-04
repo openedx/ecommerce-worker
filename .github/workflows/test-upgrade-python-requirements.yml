@@ -76,10 +76,10 @@ jobs:
 
       - name: Debugging
         run: |
-          echo "TARGET_BRANCH: $TARGET_BRANCH"
+          echo "TARGET_BRANCH: ${{ env.target_branch }}"
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           ls -al $GITHUB_WORKSPACE/testeng-ci
-          
+
       - name: create pull request
         id: createpullrequest
         env:
