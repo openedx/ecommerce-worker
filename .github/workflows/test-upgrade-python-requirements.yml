@@ -73,6 +73,13 @@ jobs:
           git clone https://github.com/edx/testeng-ci.git
           cd $GITHUB_WORKSPACE/testeng-ci
           pip install -r requirements/base.txt
+
+      - name: Debugging
+        run: |
+          echo "TARGET_BRANCH: $TARGET_BRANCH"
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          ls -al $GITHUB_WORKSPACE/testeng-ci
+          
       - name: create pull request
         id: createpullrequest
         env:
@@ -83,7 +90,6 @@ jobs:
           TEAM_REVIEWERS: ${{ inputs.team_reviewers }}
         run: |
           cd $GITHUB_WORKSPACE/testeng-ci
-          python --version
           python -m jenkins.pull_request_creator --repo-root=$GITHUB_WORKSPACE \
           --target-branch="$TARGET_BRANCH" --base-branch-name="upgrade-python-requirements" \
           --commit-message="chore: Updating Python Requirements" --pr-title="Python Requirements Update" \
