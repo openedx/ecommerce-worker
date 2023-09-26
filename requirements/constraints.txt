@@ -11,8 +11,7 @@
 # These were previously pinned in ecommerce-worker, and will stay that way
 # until we go through the process of relaxing them gradually.
 
-# some other package are bringing django3.0 so adding constraint.
-Django<3.3
+Django<4.3
 
 # This file contains all common constraints for edx-repos
 -c common_constraints.txt
