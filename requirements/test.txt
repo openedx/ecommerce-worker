@@ -21,6 +21,10 @@ async-timeout==4.0.3
     # via
     #   -r requirements/base.txt
     #   redis
+backports-zoneinfo==0.2.1
+    # via
+    #   -r requirements/base.txt
+    #   django
 billiard==3.6.4.0
     # via
     #   -r requirements/base.txt
@@ -61,7 +65,6 @@ ddt==1.6.0
 dill==0.3.7
     # via pylint
     # via
-    #   -c requirements/common_constraints.txt
     #   -r requirements/base.txt
     #   django-crum
     #   django-waffle
@@ -170,7 +173,6 @@ pytz==2023.3.post1
     # via
     #   -r requirements/base.txt
     #   celery
-    #   django
 pyyaml==6.0.1
     # via
     #   code-annotations
