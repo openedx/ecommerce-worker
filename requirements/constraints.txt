@@ -19,3 +19,7 @@ Django<3.3
 
 # breaking changes in CLI and dropped support for python3.5 in celery 5.0
 celery<5.0
+
+# tox>4.0.0 isn't yet compatible with many tox plugins, causing CI failures in almost all repos.
+# Details can be found in this discussion: https://github.com/tox-dev/tox/discussions/1810
+tox<4.0.0
