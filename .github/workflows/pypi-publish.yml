@@ -21,7 +21,7 @@ jobs:
         run: pip install setuptools wheel
 
       - name: Build package
-        run: export PACKAGE_BUILD_NAME=2u-ecommerce-worker && python setup.py sdist bdist_wheel
+        run: python setup.py sdist bdist_wheel
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
