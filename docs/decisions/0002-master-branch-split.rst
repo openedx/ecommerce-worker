@@ -31,12 +31,25 @@ This allows the community to move forward with contributions on "master" without
 breaking functionality for 2U or 2U committing changes to "master" that are irrelevant or
 otherwise inappropriate for the community's use case.
 
-Because protected branches in ecommerce require a user with Write access to the repository,
+Because protected branches in ecommerce-worker require a user with Write access to the repository,
 the "master" branch will now require someone from the community to review and manage
 code contributions to that branch.
 
+Additionally, changes pushed to the "2u/main" branch will not be published to PyPI. Tags will still be
+made for the "2u/main" branch, but to prevent version collisions with "master", they will be namespaced
+with "2u/", much like openedx releases are with "open-release/".
+
 Rejected Alternatives
 ---------------------
+
+Publishing 2u/main ecommerce-worker to PyPI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Packaging up the "2u/main" branch and publishing it to PyPI would preserve the
+current deployment strategy that 2U currently has internally; however, given that
+going forward the "2u/main"  branch is intended for internal use only, and PyPI is a
+place for public consumption, it no longer appropriate to follow this pattern, especially
+when there are other means of installing python requirements (namely, git urls and git tags).
 
 Repo fork
 ~~~~~~~~~
