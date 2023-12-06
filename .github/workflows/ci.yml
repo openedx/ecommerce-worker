@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - 2u/main
     - /^\d+\.\d+(\.\d+)?(-\S*)?$/
   pull_request:
     branches:
