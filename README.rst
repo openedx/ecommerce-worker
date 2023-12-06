@@ -68,7 +68,7 @@ The code in this repository is licensed under the AGPL unless otherwise noted. P
 How To Contribute
 -----------------
 
-Notice: Internal 2U contributions should be made against the ``2u/main`` branch.  Open source contributions should continue to be made against the ``master`` branch.
+Notice: Internal 2U changes should be made against the ``2u/main`` branch.  Open source contributions should continue to be made against the ``master`` branch.
 
 Anyone merging to the ``2u/main`` branch of this repository is expected to `release and monitor their changes <https://2u-internal.atlassian.net/wiki/spaces/RS/pages/7963261/How+to+contribute+to+our+repositories>`__ (2U-private link); if you are not able to do this DO NOT MERGE, please coordinate with someone who can to ensure that the changes are released.
 

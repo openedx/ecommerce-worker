@@ -8,8 +8,6 @@
 
 Although we have stopped integrating new contributions, we always appreciate security disclosures and patches sent to [security@edx.org](mailto:security@edx.org)
 
-## Anyone internally merging to this repository is expected to [release and monitor their changes](https://openedx.atlassian.net/wiki/spaces/RS/pages/1835106870/How+to+contribute+to+our+repositories); if you are not able to do this DO NOT MERGE, please coordinate with someone who can to ensure that the changes are released.
-
 ## If you're merging to master (not 2u/main) branch...
 
 **Merge checklist:**
@@ -32,6 +30,8 @@ Although we have stopped integrating new contributions, we always appreciate sec
 - [ ] Deploy `ecomworker`
 
 ## If you're merging to 2u/main branch...
+
+You are expected to `release and monitor your changes <https://2u-internal.atlassian.net/wiki/spaces/RS/pages/7963261/How+to+contribute+to+our+repositories>`__ (2U-private link); if you are not able to do this DO NOT MERGE, please coordinate with someone who can to ensure that the changes are released.
 
 **Merge checklist:**
 - [ ] Any new requirements are in the right place (do **not** manually modify the `requirements/*.txt` files)
