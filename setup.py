@@ -49,12 +49,12 @@ def get_version(file_path):
         return version_match.group('version_number')
     raise RuntimeError('Unable to find version string.')
 
+
 VERSION = get_version("ecommerce_worker/__init__.py")
 
-package_name = os.environ.get('PACKAGE_BUILD_NAME', 'edx-ecommerce-worker')
 
 setup(
-    name=package_name,
+    name='edx-ecommerce-worker',
     version=VERSION,
     description='Celery tasks supporting the operations of edX\'s ecommerce service',
     long_description=long_description,
