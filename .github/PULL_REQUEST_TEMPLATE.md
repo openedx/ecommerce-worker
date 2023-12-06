@@ -29,9 +29,7 @@ Although we have stopped integrating new contributions, we always appreciate sec
     - This **must** be done after the version is visible in PyPi as `make upgrade` in ecommerce will look for the latest version in PyPi.
     - Note: the ecommerce-worker constraint in ecommerce **must** also be bumped to the latest version in PyPi.
 - [ ] Deploy `ecommerce`
-- [ ] Deploy `ecomworker` on GoCD.
-    - While some functions in ecommerce-worker are run via ecommerce, others are handled by a standalone AMI and must be
-      released via GoCD.
+- [ ] Deploy `ecomworker`
 
 ## If you're merging to 2u/main branch...
 
