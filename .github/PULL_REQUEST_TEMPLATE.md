@@ -10,6 +10,8 @@ Although we have stopped integrating new contributions, we always appreciate sec
 
 ## Anyone internally merging to this repository is expected to [release and monitor their changes](https://openedx.atlassian.net/wiki/spaces/RS/pages/1835106870/How+to+contribute+to+our+repositories); if you are not able to do this DO NOT MERGE, please coordinate with someone who can to ensure that the changes are released.
 
+## If you're merging to master (not 2u/main) branch...
+
 **Merge checklist:**
 - [ ] Any new requirements are in the right place (do **not** manually modify the `requirements/*.txt` files)
     - `base.in` if needed in production
@@ -26,6 +28,27 @@ Although we have stopped integrating new contributions, we always appreciate sec
 - [ ] PR created in [ecommerce](https://github.com/openedx/ecommerce) to upgrade dependencies (including ecommerce-worker)
     - This **must** be done after the version is visible in PyPi as `make upgrade` in ecommerce will look for the latest version in PyPi.
     - Note: the ecommerce-worker constraint in ecommerce **must** also be bumped to the latest version in PyPi.
+- [ ] Deploy `ecommerce`
+- [ ] Deploy `ecomworker` on GoCD.
+    - While some functions in ecommerce-worker are run via ecommerce, others are handled by a standalone AMI and must be
+      released via GoCD.
+
+## If you're merging to 2u/main branch...
+
+**Merge checklist:**
+- [ ] Any new requirements are in the right place (do **not** manually modify the `requirements/*.txt` files)
+    - `base.in` if needed in production
+    - `test.in` for test requirements
+    - `make upgrade && make requirements` have been run to regenerate requirements
+- [ ] [Version](https://github.com/openedx/ecommerce-worker/blob/2u/main/ecommerce_worker/__init__.py) bumped
+
+**Post merge:**
+- [ ] Tag pushed and a new [version](https://github.com/openedx/ecommerce-worker/releases) released
+    - **Warning**: You must use 2u/main as the target release branch
+    - *Note*: You should prefix the tag with "2u/" (for example, "2u/3.3.4")
+    - *Note*: Assets will be added automatically. You just need to provide a tag (should match your version number) and title and description.
+- [ ] PR created in [ecommerce](https://github.com/openedx/ecommerce/tree/2u/main) **against 2u/main branch** to upgrade dependencies (including ecommerce-worker)
+    - Note: the ecommerce-worker constraint in ecommerce **must** also be bumped to the tag version you just released.
 - [ ] Deploy `ecommerce`
 - [ ] Deploy `ecomworker` on GoCD.
     - While some functions in ecommerce-worker are run via ecommerce, others are handled by a standalone AMI and must be
