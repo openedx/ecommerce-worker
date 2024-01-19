@@ -7,7 +7,7 @@ import ddt
 import responses
 from celery.exceptions import Ignore
 from edx_rest_api_client import exceptions
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, RequestException
 
 # Ensures that a Celery app is initialized when tests are run.
 from ecommerce_worker import celery_app  # pylint: disable=unused-import
@@ -143,6 +143,28 @@ class OrderFulfillmentTaskTests(TestCase):
 
         result = fulfill_order.delay(self.ORDER_NUMBER).get()
         self.assertIsNone(result)
+
+    @mock.patch('ecommerce_worker.fulfillment.v1.tasks.get_access_token')
+    @responses.activate
+    def test_fulfillment_retry_on_request_exception(self, mock_get_access_token):
+        """
+        Regression: In the case that the LMS is unavailable, the client that calls
+        the LMS for an authentication token may error with RequestException.
+        If this happens, we should retry like other HTTPErrors. Previously we were
+        not catching this exception type.
+        """
+        # First time should fail to get a token. Second time should succeed.
+        mock_get_access_token.side_effect = [RequestException, 'FAKE-access-token']
+        responses.add(responses.PUT, self.API_URL, status=200, body="{}")
+
+        result = fulfill_order.delay(self.ORDER_NUMBER).get()
+        self.assertIsNone(result)
+
+        # Validate the value of the HTTP Authorization header.
+        last_request = responses.calls[-1].request
+        token = last_request.headers.get('Authorization').split()[1]
+        self.assertEqual(token, self.ACCESS_TOKEN)
+        assert mock_get_access_token.call_count == 2
 
     @ddt.data(
         [True, 'True'],

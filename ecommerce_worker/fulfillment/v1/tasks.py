@@ -6,7 +6,7 @@ import requests
 from celery import shared_task
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
-from requests.exceptions import HTTPError, Timeout
+from requests.exceptions import HTTPError, Timeout, RequestException
 
 from ecommerce_worker.utils import get_configuration, get_access_token
 
@@ -72,6 +72,6 @@ def fulfill_order(self, order_number, site_code=None, email_opt_in=False):
             exc_info=True
         )
         _retry_order(self, exc, max_fulfillment_retries, order_number)
-    except (Timeout, SSLError) as exc:
+    except (Timeout, SSLError, RequestException) as exc:
         # Fulfillment failed, retry
         _retry_order(self, exc, max_fulfillment_retries, order_number)
