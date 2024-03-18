@@ -171,7 +171,7 @@ pytz==2023.3
     #   -r requirements/base.txt
     #   celery
     #   django
-pyyaml==6.0
+pyyaml==6.0.1
     # via
     #   code-annotations
     #   responses
