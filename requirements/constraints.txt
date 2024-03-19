@@ -18,4 +18,4 @@ Django<3.3
 -c common_constraints.txt
 
 # breaking changes in CLI and dropped support for python3.5 in celery 5.0
-celery<5.0
+celery<6.0

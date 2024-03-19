@@ -50,3 +50,10 @@ upgrade:  $(COMMON_CONSTRAINTS_TXT)
 	mv requirements/test.tmp requirements/test.txt
 
 .PHONY: help requirements worker test html_coverage quality validate clean upgrade
+
+upgrade-celery:
+	sed 's/celery==.*/celery==5.3.6/' requirements/base.in > requirements/base.tmp && \
+	mv requirements/base.tmp requirements/base.in && \
+	pip-compile --upgrade -o requirements/base.txt requirements/base.in
+	pip-compile --upgrade -o requirements/production.txt requirements/production.in
+	pip-compile --upgrade -o requirements/test.txt requirements/test.in
