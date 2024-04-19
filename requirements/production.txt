@@ -25,10 +25,8 @@ billiard==4.2.0
     # via
     #   -r requirements/base.txt
     #   celery
-celery==5.3.6
-    # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/base.txt
+celery==5.4.0
+    # via -r requirements/base.txt
 certifi==2024.2.2
     # via
     #   -r requirements/base.txt
@@ -93,7 +91,7 @@ kombu==5.3.7
     # via
     #   -r requirements/base.txt
     #   celery
-newrelic==9.8.0
+newrelic==9.9.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
