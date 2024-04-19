@@ -17,8 +17,6 @@ Django<3.3
 # This file contains all common constraints for edx-repos
 -c common_constraints.txt
 
-# other versions of celery has dependency conflicts
-celery==5.3.6
-
-# backports.zoneinfo comes by-default in newer versions of python
+# backports-zoneinfo comes by-default in newer versions of python
+# it gives error while building wheel with python>=3.9
 backports.zoneinfo;python_version<"3.9"
