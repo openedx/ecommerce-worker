@@ -19,4 +19,4 @@ Django<3.3
 
 # backports-zoneinfo comes by-default in newer versions of python
 # it gives error while building wheel with python>=3.9
-backports.zoneinfo;python_version<"3.9"
+backports.zoneinfo ; python_version < "3.9"
