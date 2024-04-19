@@ -30,10 +30,8 @@ billiard==4.2.0
     # via
     #   -r requirements/base.txt
     #   celery
-celery==5.3.6
-    # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/base.txt
+celery==5.4.0
+    # via -r requirements/base.txt
 certifi==2024.2.2
     # via
     #   -r requirements/base.txt
@@ -106,7 +104,7 @@ edx-lint==5.3.6
     # via -r requirements/test.in
 edx-rest-api-client==5.7.0
     # via -r requirements/base.txt
-exceptiongroup==1.2.0
+exceptiongroup==1.2.1
     # via pytest
 idna==3.7
     # via
@@ -128,7 +126,7 @@ mccabe==0.7.0
     # via pylint
 mock==5.1.0
     # via -r requirements/test.in
-newrelic==9.8.0
+newrelic==9.9.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
