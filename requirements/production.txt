@@ -93,7 +93,7 @@ kombu==5.3.7
     # via
     #   -r requirements/base.txt
     #   celery
-newrelic==9.8.0
+newrelic==9.9.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils

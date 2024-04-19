@@ -106,7 +106,7 @@ edx-lint==5.3.6
     # via -r requirements/test.in
 edx-rest-api-client==5.7.0
     # via -r requirements/base.txt
-exceptiongroup==1.2.0
+exceptiongroup==1.2.1
     # via pytest
 idna==3.7
     # via
@@ -128,7 +128,7 @@ mccabe==0.7.0
     # via pylint
 mock==5.1.0
     # via -r requirements/test.in
-newrelic==9.8.0
+newrelic==9.9.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
