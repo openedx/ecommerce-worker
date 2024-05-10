@@ -1,5 +1,5 @@
 PACKAGE = ecommerce_worker
-PYTHON_VERSION = py38
+PYTHON_VERSION_VAR=$(if $(PYTHON_VERSION),$(PYTHON_VERSION),py312)
 
 help: ## display this help message
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -15,7 +15,7 @@ worker: ## start the Celery worker process
 	celery -A ecommerce_worker worker --app=$(PACKAGE).celery_app:app --loglevel=info --queue=fulfillment,email_marketing
 
 test: requirements_tox  ## run unit tests and report on coverage
-	tox -e ${PYTHON_VERSION}
+	tox -e ${PYTHON_VERSION_VAR}
 
 quality: requirements_tox  ## run pep8 and pylint
 	tox -e quality
