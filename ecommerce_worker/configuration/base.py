@@ -34,8 +34,8 @@ CELERY_DEFAULT_QUEUE = DEFAULT_PRIORITY_QUEUE
 CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Specify allowed serializers that are consistent with Celery 3 defaults
-CELERY_TASK_SERIALIZER = 'pickle'
-CELERY_RESULT_SERIALIZER = 'pickle'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 CELERY_EVENT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json', 'pickle', 'yaml']
 # END CELERY
