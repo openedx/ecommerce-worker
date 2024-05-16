@@ -33,7 +33,7 @@ CELERY_DEFAULT_QUEUE = DEFAULT_PRIORITY_QUEUE
 # See http://celery.readthedocs.org/en/4.0/userguide/configuration.html#std:setting-worker_hijack_root_logger.
 CELERYD_HIJACK_ROOT_LOGGER = False
 
-# Specify allowed serializers that are consistent with Celery 3 defaults
+# Sync settings with LMS/CMS
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_EVENT_SERIALIZER = 'json'
