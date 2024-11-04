@@ -1,9 +1,7 @@
-DEPRECATION WARNING
-====================
-This repository is deprecated and in maintainence-only operation while we work on a replacement, please see `this announcement <https://discuss.openedx.org/t/deprecation-removal-ecommerce-service-depr-22/6839>`__ for more information.
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⛔️ WARNING
+==========
 
-Although we have stopped integrating new contributions, we always appreciate security disclosures and patches sent to security@openedx.org
+This repository is deprecated. For updates, `follow along on the DEPR ticket <https://github.com/openedx/public-engineering/issues/22>`_.
 
 edX Ecommerce Worker  |Build|_ |Codecov|_
 =========================================
